@@ -1,0 +1,35 @@
+30-06-2017 09.56: Importing stations from radiobrowser.info
+
+Make new stations.csv
+
+Get all stations in JSON: http://www.radio-browser.info/webservice/json/stations
+Convert to csv in https://json-csv.com/ or in http://www.convertcsv.com/json-to-csv.htm
+Open in Excel
+Delete columns except: id, name, url, tags, country, language, bitrate
+Change titles: id, tit, u1, sty, cou, lan, btr
+Save as csv
+
+Release steps
+
+Make new stations.csv
+New version number in sure.js
+New version number in config.xml
+Check text History list
+Zip parent folder to sure.zip
+Build apk in build.phonegap.com
+Upload apk and release in Google Play Console
+Check screenshots in Google Play Console
+Update website simplyradio.scriptel.nl
+
+
+
+History
+
+04-07-2017 18.55: Version 0.1.1
+Minor bugs solved
+
+04-07-2017 18.55: Version 0.1.0
+Integration with RadioBrowser.info
+
+25-06-2017 20.09: Version 0.0.1
+Initial release

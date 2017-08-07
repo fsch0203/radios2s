@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/css" href="../../css/style.css"?><!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="672.9895"
+   height="672.92145"
+   id="svg12385"
+   sodipodi:version="0.32"
+   inkscape:version="0.92.0 r15299"
+   sodipodi:docname="radio-teal-01.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.1"
+   viewBox="0 0 630.92764 630.86387"
+   inkscape:export-filename="D:\Downloads\1\radio-teal-1024-01.png"
+   inkscape:export-xdpi="146.07001"
+   inkscape:export-ydpi="146.07001">
+  <defs
+     id="defs12387" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="-112.48398"
+     inkscape:cy="229.37974"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1057"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata12390">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Mohamed Ibrahim</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Public Domain</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:publisher>
+          <cc:Agent>
+            <dc:title>clker.com</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>other map symbols</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <cc:license
+           rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-29.536161,-41.898968)">
+    <path
+       d="m 104.97941,54.664323 c -34.530286,0 -62.677894,28.083781 -62.677894,62.614067 V 597.3834 c 0,34.53028 28.147608,62.61406 62.677894,62.61406 h 480.04118 c 34.53029,0 62.67789,-28.08378 62.67789,-62.61406 V 117.27839 c 0,-34.530286 -28.1476,-62.614067 -62.67789,-62.614067 z"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="path3752"
+       inkscape:connector-curvature="0" />
+    <path
+       class="icon-bg"
+       d="m 585.02059,672.76282 c 41.67889,0 75.44325,-33.76436 75.44325,-75.37942 V 117.27839 c 0,-41.615058 -33.76436,-75.379422 -75.44325,-75.379422 H 104.97941 c -41.615058,0 -75.443249,33.764364 -75.443249,75.379422 V 597.3834 c 0,41.61506 33.828191,75.37942 75.443249,75.37942 z"
+       id="path3754"
+       inkscape:connector-curvature="0" />
+    <path
+       d="m 486.91884,451.986 c 39.63642,0 71.93277,-32.10487 71.93277,-71.80512 0,-39.76408 -32.29635,-71.93278 -71.93277,-71.93278 -39.76409,0 -71.93278,32.1687 -71.93278,71.93278 0,39.70025 32.16869,71.80512 71.93278,71.80512 m -286.70988,0 c 39.63643,0 71.93278,-32.10487 71.93278,-71.80512 0,-39.76408 -32.29635,-71.93278 -71.93278,-71.93278 -39.76408,0 -71.93278,32.1687 -71.93278,71.93278 0,39.70025 32.1687,71.80512 71.93278,71.80512 M 397.4337,308.88637 H 289.94941 v 71.67747 H 397.4337 Z m 71.0392,-76.01769 H 219.80378 v 46.40207 H 468.4729 Z m 28.65822,46.33824 H 580.0421 V 474.70833 H 106.19212 V 279.20692 h 84.95344 l 0.0638,-42.12567 c 0,-15.82904 12.76536,-28.65822 28.5944,-28.65822 h 248.54146 c 15.70139,0 28.5944,12.82918 28.5944,28.65822 z"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="path3756"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>
