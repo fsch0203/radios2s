@@ -1,11 +1,24 @@
-/*for hidden frame for form submit*/
-/*.hide {
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  width: 1px;
-  height: 1px;
-}*/
+.contheader{
+   display: inline-block;
+   line-height: 1.1;
+   padding-left: 0.3em;
+   padding-right: 0.1em;
+}
+
+.subtitle{
+  font-size: 1.0em;
+  font-style: italic;
+  /* line-height: 1.1; */
+  padding-top: 0.3em;
+}
+
+.title{
+   height:1.5em; 
+  font-size: 1.8em;
+  /* line-height: 1.1; */
+  padding-top: 0.2em;
+}
+
 #verticalbar { /*to swiperight*/
     height: 100%;
     width: 26px;
@@ -15,8 +28,18 @@
     top: 64px;
 }
 
+.ratingzero{
+  width: 20px;
+  height: 100%;
+  padding: 0px;
+}
+
+.thumbopen{
+  width: 20px;
+}
+
 .favicon{
-  background-image: url("http://be.radioonline.fm/images/klara-continuo.png"); 
+  /*background-image: url("http://be.radioonline.fm/images/klara-continuo.png"); */
   background-position: center center; 
   background-color: #fff; 
   border-radius: 50%; 
@@ -32,7 +55,7 @@
 }
 
 .favicon2{
-  background-image: url("http://be.radioonline.fm/images/klara-continuo.png"); 
+  /*background-image: url("http://be.radioonline.fm/images/klara-continuo.png"); */
   background-position: center center; 
   background-color: #fff; 
   border-radius: 50%; 
@@ -47,11 +70,45 @@
   display: none;
 }
 
+#logo{
+  background-image: url("../icon.png");
+  background-size: contain; 
+  width: 70px; 
+  height: 70px; 
+  position: absolute;
+  right: 2rem;
+  top: 9.7rem;
+  display: block;
+}
 
+.xclose{
+   vertical-align: top; 
+   padding: 14px;
+}
 
 .italic{
   font-style: italic;
   font-size: 0.8em;
+}
+
+#thumb-open {
+  display: block;
+  float: left;
+  width: 25px;
+  height: 25px;
+  margin-right: 20px;
+  background-size: 100% 100%;
+  background-image: url('../res/icon/thumb-up-open.png');
+}
+
+#thumb-closed {
+  display: none;
+  float: left;
+  width: 25px;
+  height: 25px;
+  margin-right: 20px;
+  background-size: 100% 100%;
+  background-image: url('../res/icon/thumb-up-closed.png');
 }
 
 #play {
@@ -76,7 +133,7 @@
 
 #selectedstation {
   padding-top: .2em;
-  width: 110%;
+  width: 100%;
 }
 
 .url {
@@ -84,10 +141,16 @@
   font-size: 0.8em;
 }
 
-.setrating {
+#setrating {
   padding: 5px 0px 0px 0px;
   box-sizing: content-box !important;
   float: right;
+}
+
+#setrating2 {
+  padding: 5px 0px 0px 0px;
+  box-sizing: content-box !important;
+  float: left;
 }
 
 #volume_control {
@@ -165,6 +228,16 @@ header {
 
 input[type=search]::-webkit-search-cancel-button {
   -webkit-appearance: searchfield-cancel-button;
+}
+
+table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+table td {
+    word-wrap: break-word;         /* All browsers since IE 5.5+ */
+    overflow-wrap: break-word;     /* Renamed property in CSS3 draft spec */
 }
 
 tr:active {
