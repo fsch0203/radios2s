@@ -6,7 +6,7 @@
 	<meta charset="utf-8">
 	<link rel='shortcut icon' type='image/x-icon' href='res/img/favicon.ico'/>
 	<link href="css/w3.css" rel="stylesheet" type="text/css" />
-	<link href="css/sure.css" rel="stylesheet" type="text/css" />
+	<link href="css/s2s.css" rel="stylesheet" type="text/css" />
 	<link href="css/star-rating-svg.css" rel="stylesheet" type="text/css" />
 	<script src="js/jquery-3.2.1.min.js"></script>
 	<script src="js/taffy-min.js"></script>
@@ -14,7 +14,7 @@
 	<script src="js/jquery.star-rating-svg.min.js"></script>
 	<script type="text/javascript" src="cordova.js"></script>
 	<script src="js/translate.js"></script>
-	<script src="js/sure.js"></script>
+	<script src="js/s2s.js"></script>
 	<script type="text/javascript">app.initialize();</script>
 </head>
 
@@ -111,7 +111,14 @@
 						<tr><td id="lb-language"></td><td id=inf-language></td></tr>
 						<tr><td id="lb-codec"></td><td id="inf-codec"></td></tr>
 						<tr><td id="lb-bitrate"></td><td id="inf-bitrate"></td></tr>
-						<tr><td id="lb-setrating2"></td><td><div id='setrating2'></div></td></tr>
+						<tr><td id="lb-setrating2"></td>
+							<td>
+								<div id="ratingzero2" class="w3-container w3-cell ratingzero">X</div>
+								<div class="w3-container w3-cell" style="width:120px; padding-left:0px">
+									<div id="setrating2"></div>
+								</div>
+								<!-- <div id='setrating2'></div> -->
+							</td></tr>
 						<tr><td id="lb-votes"></td><td><span id='inf-votes'></span>
 							<span id="thumb-open"></span><span id="thumb-closed"></span></td></tr>
 					</table><br/>
@@ -202,7 +209,7 @@
 				<div class="w3-container w3-cell" style="padding-right:0px">
 					<marquee id="selectedstation" behavior="scroll" scrollamount="5" direction="left"></marquee>
 				</div>
-				<div class="w3-container w3-cell ratingzero">&nbsp;
+				<div id="ratingzero" class="w3-container w3-cell ratingzero">X
 				</div>
 				<div class="w3-container w3-cell" style="width:120px; padding-left:0px">
 					<div id="setrating"></div>

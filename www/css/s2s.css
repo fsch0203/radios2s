@@ -31,7 +31,8 @@
 .ratingzero{
   width: 20px;
   height: 100%;
-  padding: 0px;
+  padding: 5px 0px 0px 0px;
+  text-align: right;
 }
 
 .thumbopen{

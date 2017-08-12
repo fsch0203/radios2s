@@ -24,7 +24,7 @@ var styles = [
 ];
 
 // Language file. Use as follows:
-// var lg = languages.german;
+// var lg = translate.de;
 // alert(lg.book); //Alerts "Speicher"
 var translate = {
     us: { 
