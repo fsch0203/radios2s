@@ -1,4 +1,4 @@
-var version = "Version 0.2.1";
+var version = "Version 0.2.2";
 var stations = TAFFY(); //base database of stations
 var xtrastat = TAFFY(); //stations added by user
 var favorits = TAFFY(); //stations marked as favorit (with rating)
@@ -17,7 +17,7 @@ var lgnr; //us:0, nl:1
 var _lg;
 var lg_device = window.navigator.language.slice(0,2);
 lg_device = (lg_device) ? lg_device : "us";
-setLanguage();
+setLanguage(); 
 
 function setLanguage() {
     var lg =localStorage.getItem("lgdevice");
@@ -280,8 +280,10 @@ function SetStation(tit){
             if(favorits({tit:tit}).count()>0){ //show if selected station is favorit
                 var r = favorits({tit:tit}).get()[0].rat;
                 $('#setrating').starRating('setRating', r, true)
+                $('.ratingzero').html('X');
             }else{ //no favorit
                 $('#setrating').starRating('setRating', 0, true)
+                $('.ratingzero').html('');
             }
             urlplaying = results.url;
             console.log('urlplaying id' + ': ' + urlplaying+' '+id);
@@ -340,8 +342,10 @@ function SetStation(tit){
             if(favorits({tit:tit}).count()>0){ //show if selected station is favorit
                 var r = favorits({tit:tit}).get()[0].rat;
                 $('#setrating').starRating('setRating', r, true)
+                $('.ratingzero').html('X');
             }else{ //no favorit
                 $('#setrating').starRating('setRating', 0, true)
+                $('.ratingzero').html('');
             }
             console.log('urlplaying id' + ': ' + urlplaying+' '+id);
             $("#player").attr("src", urlplaying);
@@ -635,8 +639,13 @@ $(document).ready(function () {
     $("#thumb-closed").on('click', function () {
         console.log('do nothing');
     });
-    $(".ratingzero").on('click', function () { //small area left of stars to set zero stars
+    $("#ratingzero").on('click', function () { //small area left of stars to set zero stars
         $('#setrating').starRating('setRating', 0);
+        updateRating(0);
+        ShowFavorits(false);
+    });
+    $("#ratingzero2").on('click', function () { //small area left of stars to set zero stars
+        $('#setrating2').starRating('setRating', 0);
         updateRating(0);
         ShowFavorits(false);
     });
@@ -683,36 +692,40 @@ $(document).ready(function () {
         w3_close();
         $.post("http://www.radio-browser.info/webservice/json/stations/bynameexact/" + titplaying,  //get playing station
         function(results) {
-            $("#thumb-open").show();
-            $("#thumb-closed").hide();
-            var rs = results[0];
-            if(rs.favicon){
-                $("#favicon2").addClass("favicon2");
-                $('.favicon2').css({"background-image":"url(" + rs.favicon + ")", "display":"block"})
-            }
-            $('.titplaying').html(titplaying);
-            $('#inf-urlplaying').html(urlplaying);
-            $("#inf-homeurl").attr("href", rs.homepage);
-            $("#inf-homeurl").html(rs.homepage);
-            $("#inf-country").html(rs.country);
-            $("#inf-state").html(rs.state);
-            $("#inf-tags").html(rs.tags);
-            $("#inf-language").html(rs.language);
-            $("#inf-codec").html(rs.codec);
-            $("#inf-bitrate").html(rs.bitrate + '&nbsp;kb/s');
-            $('#inf-votes').html(rs.votes);
-            $("#setrating2").starRating({ //user can set rating
-                initialRating: 0,
-                disableAfterRate: false,
-                useFullStars: true,
-                starSize: 20,
-                callback: function (rating) {
-                    updateRating(rating);
+            if(results[0] !== undefined){ //sometimes radiobrowser has no info on station
+                $("#thumb-open").show();
+                $("#thumb-closed").hide();
+                var rs = results[0];
+                if(rs.favicon){
+                    $("#favicon2").addClass("favicon2");
+                    $('.favicon2').css({"background-image":"url(" + rs.favicon + ")", "display":"block"})
                 }
-            });
-            var r = (favorits({tit:titplaying}).count()>0) ? favorits({tit:titplaying}).get()[0].rat : 0;
-            $('#setrating2').starRating('setRating', r, true);
-            $("#infoplayingstation").show();
+                $('.titplaying').html(titplaying);
+                $('#inf-urlplaying').html(urlplaying);
+                $("#inf-homeurl").attr("href", rs.homepage);
+                $("#inf-homeurl").html(rs.homepage);
+                $("#inf-country").html(rs.country);
+                $("#inf-state").html(rs.state);
+                $("#inf-tags").html(rs.tags);
+                $("#inf-language").html(rs.language);
+                $("#inf-codec").html(rs.codec);
+                $("#inf-bitrate").html(rs.bitrate + '&nbsp;kb/s');
+                $('#inf-votes').html(rs.votes);
+                $("#setrating2").starRating({ //user can set rating
+                    initialRating: 0,
+                    disableAfterRate: false,
+                    useFullStars: true,
+                    starSize: 20,
+                    callback: function (rating) {
+                        updateRating(rating);
+                    }
+                });
+                var r = (favorits({tit:titplaying}).count()>0) ? favorits({tit:titplaying}).get()[0].rat : 0;
+                $('#setrating2').starRating('setRating', r, true);
+                $("#infoplayingstation").show();
+            } else {
+                alert(_lg.noinfo);
+            }
         });
     });
     $(".goabout").on('click', function () {
@@ -892,8 +905,10 @@ function updateRating(rating) { //update rating of playing station
         }else{ //new rating
             favorits.insert({tit: ftit, rat:rating});
         }
+        $('.ratingzero').html('X');
     }else{ //no longer favorit
         favorits({tit:ftit}).remove();
+        $('.ratingzero').html('');
     }
     ShowFavorits(false);
 }
