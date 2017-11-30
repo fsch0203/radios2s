@@ -12,6 +12,6 @@ With a chromecast (audio) device connected you can now listen to every station o
 
 Radio S2S is working together with Community Radio Browser, a wiki-like directory of internet radio stations of around the world.
 
-### Usage
+## Usage
 
 The android apk is build in build.phonegap.com.
