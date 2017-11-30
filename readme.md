@@ -2,6 +2,8 @@
 
 RadioS2S is an android application with which you can listen to every radio station that is available on the web. There are already more than 12.000 stations available, but you can add your own if one is missing. Every weblink that is playable in a webbrowser (HTML5) can be added.
 
+You can find it in the [Google Playstore](https://play.google.com/store/apps/details?id=com.scriptel.simplyradio).
+
 We have tried to make the user interface as simple as possible:
 * select on country, style (genre) or language
 * quick search by typing in (part of the) the name of the station
