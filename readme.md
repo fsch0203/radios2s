@@ -17,3 +17,44 @@ Radio S2S is working together with Community Radio Browser, a wiki-like director
 ## Usage
 
 The android apk is build in build.phonegap.com.
+
+## Change log
+
+#### Version 0.3.0
+Real-time usage of radio-browser database: 
+- all stations always available
+- station information is always up to date
+
+#### Version 0.2.3
+Language errors corrected
+
+#### Version 0.2.2
+New stations added
+Minor bugs solved
+
+#### Version 0.2.1
+New stations added
+Support for other languages (Dutch, German)
+Minor bugs solved
+Changed name to Radio Station-to-Station
+
+#### Version 0.2.0
+New stations added
+Updated list of countries, styles
+Show playing station on favicon
+Improved volume slider
+Added rating to info playingstation screen
+Voting service added
+Remember recent selection (country, style, language)
+Minor improvements
+
+#### Version 0.1.1
+Minor bugs solved
+New stations added
+
+#### Version 0.1.0
+Integration with RadioBrowser.info
+
+#### Version 0.0.1
+Initial release
+
