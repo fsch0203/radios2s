@@ -35,6 +35,32 @@
   text-align: right;
 }
 
+.stars {
+    height: 22px;
+    background-repeat:no-repeat;
+    background-size:100px;
+}
+
+#stars5 {
+    background-image:url('../res/img/5star.png');
+}
+
+#stars4 {
+    background-image:url('../res/img/4star.png');
+}
+
+#stars3 {
+    background-image:url('../res/img/3star.png');
+}
+
+#stars2 {
+    background-image:url('../res/img/2star.png');
+}
+
+#stars1 {
+    background-image:url('../res/img/1star.png');
+}
+
 .thumbopen{
   width: 20px;
 }

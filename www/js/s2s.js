@@ -1,17 +1,16 @@
-var version = "Version 0.2.2";
-var stations = TAFFY(); //base database of stations
+var version = "Version 0.3.0";
 var xtrastat = TAFFY(); //stations added by user
 var favorits = TAFFY(); //stations marked as favorit (with rating)
-var lim = 500;
+var lim = 200;
 var start = 0; //start record in query
-var file = "res/csv/stations.csv";
 favorits.store("favorits"); //synchronize database in localstorage with name "favorits"
+console.log('fav#'+': '+favorits().count());
 xtrastat.store("xtrastat"); //synchronize database in localstorage with name "xtrastat"
 var player;
 var castconnected = "unavailable";
 var urlplaying;
 var titplaying;
-var ipaddress = '0.0.0.0';
+var idplaying;
 var thisdevice = {model:"", uuid:""};
 var lgnr; //us:0, nl:1
 var _lg;
@@ -22,6 +21,7 @@ setLanguage();
 function setLanguage() {
     var lg =localStorage.getItem("lgdevice");
     lg_device = (lg) ? lg : lg_device;
+    // lg_device = 'us';
     switch (lg_device) {
         case 'nl':
             lgnr = 1; //us:0, nl:1
@@ -97,44 +97,22 @@ var app = {
     }
 };
 
-Papa.parse(file, {
-    download: true,
-    header: true,
-    complete: function (results) {
-        stations = TAFFY(results.data);
-        if (xtrastat().count() > 0) {
-            var id, tit, cou, sty, lan, u1, btr;
-            var xtr = xtrastat().get();
-            for (var n = 0; n < xtr.length; n++) {
-                id = xtr[n].id;
-                tit = xtr[n].tit;
-                cou = xtr[n].cou;
-                sty = xtr[n].sty;
-                lan = xtr[n].lan;
-                u1 = xtr[n].u1;
-                btr = xtr[n].btr;
-                stations.insert({id:id, tit: tit, cou:cou, sty:sty, lan:lan, u1:u1, btr:btr});
-            }
-        }
-        console.log("Finished reading csv");
-        player = document.getElementById('player');
-        FillSelectOptions();
-        showHtml();
-        ShowFavorits(true);
-        var last = localStorage.getItem("laststation");
-        if (last) {
-            SetStation(last);
-        }
-        var vol = localStorage.getItem("lastvolume");
-        if (vol) {
-            setVolume(vol);
-            var rngvolume = document.getElementById('rngVolume');
-            rngvolume.value=vol;
-        }
-        //uncomment to see all stations at start
-        // Select('','',''); 
+function init() {
+    player = document.getElementById('player');
+    FillSelectOptions();
+    showHtml();
+    ShowFavorits(true); //shows favorites, if no favorites yet then Select(); in Select() you get stations db
+    var last = localStorage.getItem("laststation"); //id of last station
+    if (last) {
+        SetStation(last);
     }
-});
+    var vol = localStorage.getItem("lastvolume");
+    if (vol) {
+        setVolume(vol);
+        var rngvolume = document.getElementById('rngVolume');
+        rngvolume.value = vol;
+    }
+}
 
 function w3_open() { //sidebar open, overlay for dark background
     $("#mySidebar").show();
@@ -248,7 +226,7 @@ function hasScrolled() {
     start = (st === 0) ? 0 : start; //reset start if on top
     var sh = $('body').outerHeight(); //scroll height
     var p = st / sh;
-    if (p > 0.8) { // almost at bottum: get new records
+    if (p > 0.9) { // almost at bottum: get new records
         start += 1;
         Select();
     }
@@ -263,97 +241,65 @@ function hasScrolled() {
 } // END: hide header when scrolling down
 
 function setVolume(volume) {
-    // console.log('volume' + ': '+ volume);
     player.volume = volume;
     localStorage.setItem("lastvolume", volume);
 }
 
-function SetStation(tit){
-    var id = stations({tit: tit}).get()[0].id;
+function SetStation(id){
     $.post("http://www.radio-browser.info/webservice/v2/json/url/" + id, //get playable station url
-    function(results) {
-        if (results.ok == 'true') {
-            titplaying = tit;
-            localStorage.setItem("laststation", tit);
-            var btr = stations({tit: tit}).get()[0].btr; //bitrate
-            $("#selectedstation").html(tit + " - " + btr + " kbps");
-            if(favorits({tit:tit}).count()>0){ //show if selected station is favorit
-                var r = favorits({tit:tit}).get()[0].rat;
-                $('#setrating').starRating('setRating', r, true)
-                $('.ratingzero').html('X');
-            }else{ //no favorit
-                $('#setrating').starRating('setRating', 0, true)
-                $('.ratingzero').html('');
-            }
-            urlplaying = results.url;
-            console.log('urlplaying id' + ': ' + urlplaying+' '+id);
-            $("#player").attr("src", urlplaying);
-            var x1 = jQuery.trim(urlplaying).substring(0, 42).trim(this);
-            x1 = (urlplaying.length > x1.length) ? x1 + "..." : x1;
-            $(".url").html(x1);
-            var pl = document.getElementById('play');
-            pl.click(); //activate CastVideo.js
-            // get favicon of station ----------------
+    function(res) {
+        if (res.ok == 'true') {
+            urlplaying = res.url;
+            // get other info of station ----------------
             $.post("http://www.radio-browser.info/webservice/json/stations/byid/" + id, 
             function(results){
                 var urlfavicon = results[0].favicon;
-                if(results[0].favicon){
+                    if (results[0].favicon){
                     $('.favicon').css({"background-image":"url(" + urlfavicon + ")", "display":"block"})
-                }else{
+                } else {
                     $('.favicon').css("display","none")
-                    
                 }
-            });
-            // post info to server ------------------
-            if (ipaddress == '0.0.0.0') { //at start get ip address
-                $.getJSON("https://api.ipify.org?format=jsonp&callback=?", function (json) {
-                    ipaddress = json.ip; 
-                    $.post("https://radios2s.scriptel.nl/sure/savestation.php", {
+                titplaying = results[0].name;
+                idplaying = id;
+                localStorage.setItem("laststation", id);
+                var btr = results[0].bitrate; //bitrate
+                $("#selectedstation").html(titplaying + " - " + btr + " kbps");
+                if(favorits({tit:titplaying}).count()>0){ //show if selected station is favorit
+                    var r = favorits({tit:titplaying}).get()[0].rat;
+                    $('#setrating').starRating('setRating', r, true)
+                    $('.ratingzero').html('X');
+                } else{ //no favorit
+                    $('#setrating').starRating('setRating', 0, true)
+                    $('.ratingzero').html('');
+                }
+                console.log('urlplaying id' + ': ' + urlplaying+' '+ id);
+                $("#player").attr("src", urlplaying);
+                var x1 = jQuery.trim(urlplaying).substring(0, 42).trim(this);
+                x1 = (urlplaying.length > x1.length) ? x1 + "..." : x1;
+                $(".url").html(x1);
+                var pl = document.getElementById('play');
+                pl.click(); //activate CastVideo.js
+                $.get("http://ipinfo.io", function(ipinfo) {
+                    // ipaddress = ipinfo.ip;
+                    $.post("https://radios2s.scriptel.nl/sure/savestation03.php", {
                         id: id,
-                        tit: tit,
-                        u1:  urlplaying,
-                        ip: ipaddress,
+                        tit: titplaying,
+                        ip : ipinfo.ip,
+                        hostname : ipinfo.hostname,
+                        city : ipinfo.city,
+                        region : ipinfo.region,
+                        country : ipinfo.country,
+                        loc : ipinfo.loc,
+                        org : ipinfo.org,
                         mod: thisdevice.model,
                         uuid: thisdevice.uuid
                     }, function(results){
                         console.log('posted to radios2s.scriptel.nl: '+ results.id);
                     });
-                });
-            } else { //ip address already known
-                $.post("https://radios2s.scriptel.nl/sure/savestation.php", {
-                    id: id,
-                    tit: tit,
-                    u1:  urlplaying,
-                    ip: ipaddress,
-                    mod: thisdevice.model,
-                    uuid: thisdevice.uuid
-                }, function(results){
-                    console.log('posted to radios2s.scriptel.nl: '+ results.id);
-                });
-            }
-        } else if (results.ok == 'false') {
+                }, "jsonp");
+            });
+        } else  {
             alert("Sorry, \nradio station is not availlable");
-        } else { //no response from radiobrowser
-            titplaying = tit;
-            urlplaying = stations({tit: tit}).get()[0].u1;
-            localStorage.setItem("laststation", tit);
-            var btr = stations({tit: tit}).get()[0].btr; //bitrate
-            $("#selectedstation").html(tit + " - " + btr + " kbps");
-            if(favorits({tit:tit}).count()>0){ //show if selected station is favorit
-                var r = favorits({tit:tit}).get()[0].rat;
-                $('#setrating').starRating('setRating', r, true)
-                $('.ratingzero').html('X');
-            }else{ //no favorit
-                $('#setrating').starRating('setRating', 0, true)
-                $('.ratingzero').html('');
-            }
-            console.log('urlplaying id' + ': ' + urlplaying+' '+id);
-            $("#player").attr("src", urlplaying);
-            var x1 = jQuery.trim(urlplaying).substring(0, 42).trim(this);
-            x1 = (urlplaying.length > x1.length) ? x1 + "..." : x1;
-            $(".url").html(x1);
-            var pl = document.getElementById('play');
-            pl.click(); //activate CastVideo.js
         }
     });
 }
@@ -374,6 +320,7 @@ function EditStation(tit){
 function Select() {
     var sel;
     var st = start * lim;
+    console.log('st start lim;' + ': ' + st +' '+ start +' '+ lim);
     var cou_nr = $("#cou").val(); //index of selected country
     var sty_nr = $("#sty").val(); //index of selected style
     var lan_nr = $("#lan").val(); //index of selected language
@@ -381,66 +328,54 @@ function Select() {
     sty = ($("#sty").val() == '') ? '' : styles[0][sty_nr];
     lan = ($("#lan").val() == '') ? '' : languages[0][lan_nr];
     filter = $("#myFilter").val();
+    var param = {name: filter, country: cou, tag: sty, language: lan, offset: st, limit:lim};
+    $.post("http://www.radio-browser.info/webservice/json/stations/search", param, //get stations
+    function(results){
+        var list = '';
+        var n = 0;
+        for (i in results) {
+            list += "<tr id=" + results[i].id + "><td>" + results[i].name + "</td></tr>";
+            n += 1;
+        }
+        if (start === 0) {
+            $('#activelist').html(list);
+        } else {
+            $('#activelist').append(list);
+        }
+        console.log('rows#' + ': ' + n);
+    });
     $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');        
     if (cou === '' && sty === '' && lan === '') {
-        sel = stations({tit:{likenocase:filter}}).start(st).limit(lim).get();
     } else if (cou !== '' && sty === '' && lan === '') {
         $('#cont-cou, #cou').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         $("#cou").val(cou_nr); //show selected country in header
-        sel = stations({
-            cou: {likenocase:cou},
-            tit:{likenocase:filter}
-        }).order('tit').start(st).limit(lim).get();
     } else if (cou === '' && sty !== '' && lan === '') {
         $('#cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');        
         storeSelection(sty_nr.toString(), "selstyles");
         $("#sty").val(Number(sty_nr));
-        sel = stations({
-            sty: {likenocase:sty},
-            tit: {likenocase:filter}
-        }).order('tit').start(st).limit(lim).get();
     } else if (cou === '' && sty === '' && lan !== '') {
         $('#cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');        
         storeSelection(lan_nr.toString(), "sellanguages");
         $("#lan").val(lan_nr);
-        sel = stations({
-            lan: {likenocase:lan},
-            tit: {likenocase:filter}
-        }).order('tit').start(st).limit(lim).get();
     } else if (cou !== '' && sty !== '' && lan === '') {
         $('#cont-cou, #cou, #cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');        
         storeSelection(cou_nr.toString(), "selcountries");
         storeSelection(sty_nr.toString(), "selstyles");
         $("#cou").val(cou_nr);
         $("#sty").val(sty_nr);
-        sel = stations({
-            cou: {likenocase:cou},
-            sty: {likenocase:sty},
-            tit: {likenocase:filter}
-        }).order('tit').start(st).limit(lim).get();
     } else if (cou !== '' && sty === '' && lan !== '') {
         $('#cont-cou, #cou, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         storeSelection(lan_nr.toString(), "sellanguages");
         $("#cou").val(cou_nr);
         $("#lan").val(lan_nr);
-        sel = stations({
-            cou: {likenocase:cou},
-            lan: {likenocase:lan},
-            tit:{likenocase:filter}
-        }).order('tit').start(st).limit(lim).get();
     } else if (cou === '' && sty !== '' && lan !== '') {
         $('#cont-sty, #sty, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(sty_nr.toString(), "selstyles");
         storeSelection(lan_nr.toString(), "sellanguages");
         $("#sty").val(sty_nr);
         $("#lan").val(lan_nr);
-        sel = stations({
-            sty: {likenocase:sty},
-            lan: {likenocase:lan},
-            tit: {likenocase:filter}
-        }).order('tit').start(st).limit(lim).get();
     } else if (cou !== '' && sty !== '' && lan !== '') {
         $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');        
         storeSelection(cou_nr.toString(), "selcountries");
@@ -449,21 +384,6 @@ function Select() {
         $("#cou").val(cou_nr);
         $("#sty").val(sty_nr);
         $("#lan").val(lan_nr);
-        sel = stations({
-            cou: {likenocase:cou},
-            sty: {likenocase:sty},
-            lan: {likenocase:lan},
-            tit: {likenocase:filter}
-        }).order('tit').start(st).limit(lim).get();
-    }
-    var list = '';
-    for (var n = 0; n < sel.length; n++) {
-        list += "<tr><td>" + sel[n].tit + "</td></tr>";
-    }
-    if (start === 0) {
-        $('#activelist').html(list);
-    } else {
-        $('#activelist').append(list);
     }
 }
 
@@ -489,23 +409,23 @@ function ShowFavorits(warning){ //if warning is true: message if there are no fa
     var x;
     var list = '';
     // clear option boxes and search field
-    var r = (favorits({tit:titplaying}).count()>0) ? favorits({tit:titplaying}).get()[0].rat : 0;
-    $('#setrating').starRating('setRating', r, true);
+    // var r = (favorits({tit:titplaying}).count()>0) ? favorits({tit:titplaying}).get()[0].rat : 0;
+    // $('#setrating').starRating('setRating', r, true);
     $("#cou, #sty, #lan").val('').prop('selected', true);
     $("#myFilter").val('');
-    $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');        
+    $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');
     if (favorits().count() > 0){
         for (var i = 5; i > 0; i--) {
             x = favorits({rat:i}).order('tit').limit(lim).get();
             if(x.length>0){
                 if(i===1){
-                    list += '<tr><th>'+i+' '+ _lg.star +' </th></tr>';
+                    list += '<tr><th><div  class="stars" id="stars'+ i + '"></div>'  +' </th></tr>';
                 }else{
-                    list += '<tr><th>'+i+' '+ _lg.stars + '</th></tr>';
+                    list += '<tr><th><div  class="stars" id="stars'+ i + '"></div>'  + '</th></tr>';
                 }
             }
             for (var n = 0; n < x.length; n++) {
-                list += "<tr><td>" + x[n].tit + "</td></tr>";
+                list += "<tr id=" + x[n].id + "><td>" + x[n].tit + "</td></tr>";
             }
         }
         $('#activelist').html(list);
@@ -598,6 +518,7 @@ function swipe() { //activates swiperight and swipeleft
 
 $(document).ready(function () {
     swipe();
+    init();
     $("#closeapp").on('click', function () {
         detectLanguage(); //next time the right language setting will apply (if setting has changed)
         if (navigator.app) { //closing is necessary if user wants to apply new language settings (if changed)
@@ -622,8 +543,8 @@ $(document).ready(function () {
         ShowFavorits(true);
     });
     $("#thumb-open").on('click', function () {
-        var id = stations({tit: titplaying}).get()[0].id;
-        $.post("http://www.radio-browser.info/webservice/json/vote/" + id,  //set vote
+        // var id = favorits({tit: titplaying}).get()[0].id;
+        $.post("http://www.radio-browser.info/webservice/json/vote/" + idplaying,  //set vote
         function(results) {
             var x = (Number($('#inf-votes').text())+1).toString();
             if(results.ok =='true') { 
@@ -633,7 +554,7 @@ $(document).ready(function () {
             } else {
                 alert(results.message);
             }
-            console.log('id msg ok' + ': ' + id+' '+results.message+' '+results.ok);
+            console.log('id msg ok' + ': ' + idplaying +' '+results.message+' '+results.ok);
         });
     });
     $("#thumb-closed").on('click', function () {
@@ -656,11 +577,13 @@ $(document).ready(function () {
         starSize: 20,
         callback: function (rating) {
             updateRating (rating);
+            ShowFavorits();
         }
     });
-    $("#activelist").on('click', 'td', function() {
-        var tit = stations({tit: $(this).text()}).get()[0].tit;
-        SetStation(tit);
+    $("#activelist").on('click', 'tr', function() {
+        var id = $(this).attr('id');
+        console.log('id' + ': ' + id);
+        SetStation(id);
     });
     $("#editlist").on('click', 'tr', function() {
         var tit = xtrastat({tit: $(this).text()}).get()[0].tit;
@@ -772,7 +695,7 @@ $(document).ready(function () {
         var itit = $("#itit").val();
         if (xtrastat({tit:itit}).count() > 0) {
             xtrastat({tit:itit}).remove();
-            stations({tit:itit}).remove();
+            // stationsnew({name:itit}).remove();
         }
         $('#editstation').hide();
         $('#editstationslist').show();
@@ -793,10 +716,20 @@ $(document).ready(function () {
             url: $("#iu1").val(),
             homepage: $("#ihom").val(),
             favicon: $("#ifav").val(),
-            country: $("#icou").val(),
+            country: countries[0][$("#icou").val()],
             state: $("#ista").val(),
-            language: $("#ilan").val(),
-            tags: $("#isty").val()
+            language: languages[0][$("#ilan").val()],
+            tags: styles[0][$("#isty").val()]
+        };
+        var stationxtr = { //station in format xtrastat
+            tit: $("#itit").val(),
+            u1: $("#iu1").val(),
+            hom: $("#ihom").val(),
+            fav: $("#ifav").val(),
+            cou: $("#icou").val(), //country code
+            sta: $("#ista").val(),
+            lan: $("#ilan").val(), //lan code
+            sty: $("#isty").val() //sty code
         };
         if (stationrb.name === '') {
             alert("Enter name");
@@ -810,7 +743,7 @@ $(document).ready(function () {
                     if(results.ok == 'true'){
                         alert(results.message);
                         stationrb.id = results.id;
-                        updateLocal(stationrb);
+                        updateLocal(stationxtr);
                     } else {
                         alert(results.message);
                     }
@@ -822,7 +755,7 @@ $(document).ready(function () {
                         alert(results.message);
                         stationrb.id = results.id;
                         stationrb.stream_check_bitrate = results.stream_check_bitrate;
-                        updateLocal(stationrb);
+                        updateLocal(stationxtr);
                     } else {
                         alert(results.message);
                     }
@@ -897,31 +830,25 @@ function showHtml(){
 }
 
 function updateRating(rating) { //update rating of playing station
-    var ftit = stations({tit: titplaying}).get()[0].tit;
-    if(rating>0){ 
-        if(favorits({tit:ftit}).count()>0){ //update of rating
-            favorits({tit:ftit}).update({rat:rating});
-            console.log("updated rating",ftit, rating);
-        }else{ //new rating
-            favorits.insert({tit: ftit, rat:rating});
+    if( rating > 0){ 
+        if (favorits({tit:titplaying}).count()>0){ //update of rating
+            favorits({tit:titplaying}).update({rat:rating});
+            console.log("updated rating",titplaying, rating);
+        } else { //new rating
+            favorits.insert({id: idplaying, tit: titplaying, rat:rating});
         }
         $('.ratingzero').html('X');
-    }else{ //no longer favorit
-        favorits({tit:ftit}).remove();
+    } else { //no longer favorit
+        favorits({tit:titplaying}).remove();
         $('.ratingzero').html('');
     }
     ShowFavorits(false);
 }
 
-function updateLocal(strb) { //strb = station on format radiobrowser.info
-    if (xtrastat({tit:strb.name}).count() > 0){ //station exists in xtrastat
-        xtrastat({tit:strb.name}).update({cou:strb.country, sty:strb.tags, lan:strb.language, u1:strb.url, id:strb.id, btr:strb.stream_check_bitrate, hom:strb.homepage, sta:strb.state, fav:strb.favicon});
+function updateLocal(xtr) { //strb = station on format radiobrowser.info
+    if (xtrastat({tit:xtr.tit}).count() > 0){ //station exists in xtrastat
+        xtrastat({tit:xtr.tit}).update(xtr);
     }else{ //new station
-        xtrastat.insert({tit:strb.name, cou:strb.country, sty:strb.tags, lan:strb.language, u1:strb.url, id:strb.id, btr:strb.stream_check_bitrate, hom:strb.homepage, sta:strb.state, fav:strb.favicon});
-    }
-    if (stations({id:strb.id}).count() > 0){ //station exists stations
-        stations({id:strb.id}).update({tit:strb.name, cou:strb.country, sty:strb.tags, lan:strb.language, u1:strb.url, btr:strb.stream_check_bitrate});
-    }else{ //new station
-        stations.insert({tit:strb.name, cou:strb.country, sty:strb.tags, lan:strb.language, u1:strb.url, id:strb.id, btr:strb.stream_check_bitrate});
+        xtrastat.insert(xtr);
     }
 }
