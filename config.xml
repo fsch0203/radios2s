@@ -11,7 +11,7 @@
     <platform name="android" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
-	<icon src="icon.png" />
+	<icon src="s2s-icon-512.png" />
 	<splash src="splash.png" />
     <engine name="browser" spec="~4.1.0" />
     <plugin name="cordova-plugin-chromecast" spec="https://github.com/nbabanov/cordova-chromecast.git" />

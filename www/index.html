@@ -14,17 +14,18 @@
 	<script type="text/javascript" src="cordova.js"></script>
 	<script src="js/translate.js"></script>
 	<script src="js/s2s.js"></script>
-	<script type="text/javascript">app.initialize();</script>
 </head>
+<title>Radio S2S</title>
 
-<body onload="onLoad()">
+<!-- <body onload="onLoad()"> -->
+<body>
 	<!-- Sidebar -->
 	<div class="w3-sidebar w3-bar-block w3-border-right w3-animate-left" style="display:none; z-index:10; width:50%;" id="mySidebar">
-		<button onclick="w3_close()" class="w3-bar-item w3-large fs-black" id=btn_close></button>
+		<button class="w3-bar-item w3-large fs-black" id=close-sidebar></button>
 		<a href="#" class="w3-bar-item w3-button" id="makenewstation"></a>
 		<a href="#" class="w3-bar-item w3-button" id="goeditstations"></a>
 		<a href="#" class="w3-bar-item w3-button infothisstation" id="playingstation"></a>
-		<button onclick="app.initialize();w3_close();" class="w3-bar-item w3-button" id="initcast"></button>
+		<button class="w3-bar-item w3-button" id="initcast"></button>
 		<a href="#" class="w3-bar-item w3-button" id="closeapp"></a>
 		<a href="#" class="w3-bar-item w3-button goabout" id="goabout"></a>
 	</div>
@@ -35,7 +36,7 @@
 
 	<header>
 		<div class="fs-teal">
-			<button class="w3-button w3-xlarge xclose" onclick="w3_open()">&#9776;</button>
+			<button class="w3-button w3-xlarge xclose" id="btn-sidemenu">&#9776;</button>
 			<div class="w3-container fs-teal contheader">
 				<!-- <h2 class="goabout">Radio S<span class="w3-xlarge">2</Span>S</h2> -->
 				<!-- <h2 class="goabout">Station-to-Station</h2> -->
@@ -65,7 +66,7 @@
 		<!--Central part-->
 		<div id="centralpart" class="w3-container"  style="padding-top:8.5em; padding-bottom:8em;">
 			<div class="w3-container w3-cell" style="padding-left:0em; width:84%">
-				<input class="w3-input w3-border w3-padding" type="search" placeholder="Search for stations.." id="myFilter" onkeyup="Select()" onsearch="Select()">
+				<input class="w3-input w3-border w3-padding" type="search" placeholder="Search for stations.." id="myFilter">
 			</div>
 			<div class="w3-container w3-cell w3-cell-middle">
 				<a href="#" class="w3-button fs-black w3-ripple" id="favorits"></a>
@@ -79,13 +80,12 @@
 		<div id="popup01" class="w3-modal">
 			<div class="w3-modal-content w3-card-4">
 				<div class="w3-container fs-light-blue">
-					<span onclick="document.getElementById('popup01').style.display='none'" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
+					<span id="closepopup01" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
 					<h2 id="popupheader"></h2>
 				</div>
 				<div class="w3-container" id="popupmessage">
 					<!--message-->
 				</div>
-				<!--<div class="w3-container" id="devicemessage"></div>-->
 				<div id="logo"></div>
 				<footer class="w3-container fs-light-blue">
 				</footer>
@@ -96,7 +96,7 @@
 		<div id="infoplayingstation" class="w3-modal">
 			<div class="w3-modal-content w3-card-4">
 				<div class="w3-container fs-light-blue">
-					<span onclick="document.getElementById('infoplayingstation').style.display='none'" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
+					<span id="close-infoplayingstation" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
 					<h2 id="playingstat"></h2>
 				</div>
 				<div class="w3-container" id="popupmessage">
@@ -132,7 +132,7 @@
 		<div id="editstation" class="w3-modal">
 			<div class="w3-modal-content w3-card-4">
 				<div class="w3-container fs-light-blue">
-					<span onclick="document.getElementById('editstation').style.display='none'" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
+					<span id="close-editstation" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
 					<h2 id="titleeditform"></h2>
 				</div>
 				<form method="post" class="w3-container" id="editstationform">
@@ -186,7 +186,7 @@
 		<div id="editstationslist" class="w3-modal">
 			<div class="w3-modal-content w3-card-4">
 				<div class="w3-container fs-light-blue">
-					<span onclick="document.getElementById('editstationslist').style.display='none'" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
+					<span id="close-editstationslist" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
 					<h2 id="editstations"></h2>
 				</div>
 
@@ -211,7 +211,7 @@
 				<div id="ratingzero" class="w3-container w3-cell ratingzero">
 				</div>
 				<div class="w3-container w3-cell" style="width:120px; padding-left:0px">
-					<div id="setrating"></div>
+					<div id="setrating" title="Set rating to make favorite"></div>
 				</div>
 			</div>
 			<div class="w3-cell-row" style="height:40px;">
@@ -220,10 +220,10 @@
 					<div id="pause"></div>
 				</div>
 				<div class="w3-container w3-cell" id="volume_control">
-					<input type="range" oninput="setVolume(this.value)" id="rngVolume" min="0" max="1" step="0.01" value="1">
+					<input type="range" id="rngVolume" min="0" max="1" step="0.01" value="1">
 				</div>
 				<audio id="player" src=""></audio>
-				<div class="favicon infothisstation">
+				<div class="favicon infothisstation" title="Click to get information on this station">
 				</div>
 			</div>
 			<div class="w3-container" style="height:20px;">

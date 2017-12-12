@@ -98,13 +98,13 @@
 }
 
 #logo{
-  background-image: url("../icon.png");
+  background-image: url("../s2s-icon-512.png");
   background-size: contain; 
   width: 70px; 
   height: 70px; 
   position: absolute;
   right: 2rem;
-  top: 9.7rem;
+  top: 11.7rem;
   display: block;
 }
 
@@ -265,6 +265,7 @@ table {
 table td {
     word-wrap: break-word;         /* All browsers since IE 5.5+ */
     overflow-wrap: break-word;     /* Renamed property in CSS3 draft spec */
+    cursor: pointer;
 }
 
 tr:active {

@@ -4,7 +4,7 @@ var favorits = TAFFY(); //stations marked as favorit (with rating)
 var lim = 200;
 var start = 0; //start record in query
 favorits.store("favorits"); //synchronize database in localstorage with name "favorits"
-console.log('fav#'+': '+favorits().count());
+// console.log('fav#'+': '+favorits().count());
 xtrastat.store("xtrastat"); //synchronize database in localstorage with name "xtrastat"
 var player;
 var castconnected = "unavailable";
@@ -18,8 +18,18 @@ var lg_device = window.navigator.language.slice(0,2);
 lg_device = (lg_device) ? lg_device : "us";
 setLanguage(); 
 
+var run_as = 'web'; //run as web-application (default: web), as chrome-extension (ext), as chrome-app (app) or as NodeWebkit-app (kit)
+try {
+    var manifest = chrome.runtime.getManifest(); //OK for ext
+    run_as = manifest.name.slice(-3).toLowerCase(); //get last 3 characters of name (='ext')
+    version = manifest.version;
+} catch (err) {
+    //run_as = 'web';
+}
+console.log('run_as'+': '+run_as);
+
 function setLanguage() {
-    var lg =localStorage.getItem("lgdevice");
+    var lg =localStorage.getItem("lgdevice"); //only relevant for android; in web/chrome lgdevice is not stored
     lg_device = (lg) ? lg : lg_device;
     // lg_device = 'us';
     switch (lg_device) {
@@ -51,12 +61,11 @@ var app = {
     // Bind Event Listeners Bind any events that are required on startup. Common events are:
     // 'load', 'deviceready', 'offline', and 'online'.
     bindEvents: function() {
-        if (this.testing_on_desktop) {
+        if (this.testing_on_desktop || run_as === 'ext') {
             this.loadScript("https://www.gstatic.com/cv/js/sender/v1/cast_sender.js", function(){
                 console.log('Desktop: Loaded cast_sender.js');
             });
             this.loadScript("js/CastVideos.js", function(){
-                // console.log('Desktop: Loaded CastVideos.js');
                 var castPlayer = new CastPlayer();
             });
         }else{
@@ -279,7 +288,7 @@ function SetStation(id){
                 $(".url").html(x1);
                 var pl = document.getElementById('play');
                 pl.click(); //activate CastVideo.js
-                $.get("http://ipinfo.io", function(ipinfo) {
+                $.get("https://ipinfo.io", function(ipinfo) {
                     // ipaddress = ipinfo.ip;
                     $.post("https://radios2s.scriptel.nl/sure/savestation03.php", {
                         id: id,
@@ -294,7 +303,7 @@ function SetStation(id){
                         mod: thisdevice.model,
                         uuid: thisdevice.uuid
                     }, function(results){
-                        console.log('posted to radios2s.scriptel.nl: '+ results.id);
+                        // console.log('posted to radios2s.scriptel.nl: '+ results.id);
                     });
                 }, "jsonp");
             });
@@ -320,7 +329,7 @@ function EditStation(tit){
 function Select() {
     var sel;
     var st = start * lim;
-    console.log('st start lim;' + ': ' + st +' '+ start +' '+ lim);
+    // console.log('st start lim;' + ': ' + st +' '+ start +' '+ lim);
     var cou_nr = $("#cou").val(); //index of selected country
     var sty_nr = $("#sty").val(); //index of selected style
     var lan_nr = $("#lan").val(); //index of selected language
@@ -342,7 +351,7 @@ function Select() {
         } else {
             $('#activelist').append(list);
         }
-        console.log('rows#' + ': ' + n);
+        // console.log('rows#' + ': ' + n);
     });
     $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');        
     if (cou === '' && sty === '' && lan === '') {
@@ -454,15 +463,15 @@ function UrlCheck(url){
     }
 }
 
-function onLoad() {
-    // console.log('eventlistener deviceready');
+$(window).on( "load", function(){
+    // console.log('document loaded');
     document.addEventListener("deviceready", onDeviceReady, false);
-}
+});
 
-function onDeviceReady() {
+function onDeviceReady() { //Only relevant for android app. Cordova's device APIs have loaded and are ready to access
+    console.log('onDeviceReady triggered');
     setLanguage(); //get localstorage
     detectLanguage(); //check device globalization
-    // showHtml();
     var loadCastInterval = setInterval(function () {
         if (chrome.cast.isAvailable) {
             clearInterval(loadCastInterval);
@@ -472,7 +481,6 @@ function onDeviceReady() {
     }, 1000);
     thisdevice.model = device.model; //users device
     thisdevice.uuid = device.uuid; //unique id of device
-    // alert("navigator.globalization: " + navigator.globalization);
 }
 
 function showMessage(hd,msg) {
@@ -519,6 +527,8 @@ function swipe() { //activates swiperight and swipeleft
 $(document).ready(function () {
     swipe();
     init();
+    app.initialize();
+    $('#play, #pause, .favicon, .w3-select').css( 'cursor', 'pointer' );
     $("#closeapp").on('click', function () {
         detectLanguage(); //next time the right language setting will apply (if setting has changed)
         if (navigator.app) { //closing is necessary if user wants to apply new language settings (if changed)
@@ -526,6 +536,7 @@ $(document).ready(function () {
         } else if (navigator.device) {
             navigator.device.exitApp();
         } else {
+            self.close(); //closes chrome window
             console.log('app would now close');
         }
     });
@@ -535,12 +546,18 @@ $(document).ready(function () {
     $('#myFilter').on("focusout", function(){
         $('#footer').removeClass('footerdown').addClass('footerup');
     });
+    $('#myFilter').keyup(function(){
+        Select();
+    });
     $("#cou, #sty, #lan").change(function () {
         start = 0;
         Select();
     });
     $("#favorits").on('click', function () {
         ShowFavorits(true);
+    });
+    $("#rngVolume").on('input', function () {
+        setVolume(this.value);
     });
     $("#thumb-open").on('click', function () {
         // var id = favorits({tit: titplaying}).get()[0].id;
@@ -613,7 +630,7 @@ $(document).ready(function () {
     });
     $(".infothisstation").on('click', function(){
         w3_close();
-        $.post("http://www.radio-browser.info/webservice/json/stations/bynameexact/" + titplaying,  //get playing station
+        $.post("http://www.radio-browser.info/webservice/json/stations/byid/" + idplaying,  //get playing station
         function(results) {
             if(results[0] !== undefined){ //sometimes radiobrowser has no info on station
                 $("#thumb-open").show();
@@ -687,6 +704,9 @@ $(document).ready(function () {
         }
         $('#editlist').html(list);
     });
+    $('#btn-sidemenu').on('click', function () {
+        w3_open();
+    });
     $('#btn-newstation').on('click', function () { //clear edit station form
         $("#itit, #icou, #isty, #ilan, #iu1").val('');
         $("#titleeditform").text('New station');
@@ -709,6 +729,25 @@ $(document).ready(function () {
     $('#cancelstation').on('click', function () { //cancel edit station form
         $("#itit, #icou, #isty, #ilan, #iu1").val('');
         $('#editstation').hide();
+    });
+    $('#closepopup01').on('click', function () { //close popup
+        $("#popup01").hide();
+    });
+    $('#close-infoplayingstation').on('click', function () {
+        $("#infoplayingstation").hide();
+    });
+    $('#close-editstation').on('click', function () {
+        $("#editstation").hide();
+    });
+    $('#close-editstationslist').on('click', function () {
+        $("#editstationslist").hide();
+    });
+    $('#close-sidebar').on('click', function () {
+        w3_close();
+    });
+    $('#initcast').on('click', function () {
+        app.initialize();
+        w3_close();
     });
     $('#savestation').on('click', function () { //save or update new or edited station
         var stationrb = { //station in format radiobrowser.info
@@ -776,7 +815,7 @@ function detectLanguage() {
                     showHtml();
                     FillSelectOptions();
                 }
-                // alert('language.value' + ': ' + language.value);
+                console.log('navigator.globalization language.value' + ': ' + language.value);
             },
             function (error) {
                 // alert('error');
@@ -797,7 +836,7 @@ function detectLanguage() {
 function showHtml(){
     $("#play").hide();
     $("#pause").show();
-    $("#btn_close").html(_lg.Close+"&nbsp;&times;");
+    $("#close-sidebar").html(_lg.Close+"&nbsp;&times;");
     $("#makenewstation").html(_lg.Makenewstation);
     $("#goeditstations").html(_lg.EditStation);
     $("#closeapp").html(_lg.closeapp);

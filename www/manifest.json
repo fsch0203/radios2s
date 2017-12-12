@@ -1,0 +1,24 @@
+{
+    "name": "Radio Station-to-Station Ext",
+    "version": "0.3.2",
+    "manifest_version": 2,
+    "description": "Free Internet Radio Player",
+    "icons": {
+        "32": "s2s-icon-32.png",
+        "48": "s2s-icon-48.png",
+        "128": "s2s-icon-128.png"
+    },
+    "background": {
+        "scripts": ["js/background.js"]
+      },
+    "browser_action": {
+        "default_icon": "s2s-icon-128.png"
+    },
+    "homepage_url": "http://www.stack-calculator.com",
+    "content_security_policy": "script-src 'self' https://ipinfo.io https://www.gstatic.com; object-src 'self'",
+    "permissions": [
+        "http://*/*",
+        "https://*/*",
+        "storage"
+    ]
+}
