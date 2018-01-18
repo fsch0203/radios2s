@@ -14,8 +14,8 @@
     "browser_action": {
         "default_icon": "s2s-icon-128.png"
     },
-    "homepage_url": "http://www.stack-calculator.com",
-    "content_security_policy": "script-src 'self' https://ipinfo.io https://www.gstatic.com; object-src 'self'",
+    "homepage_url": "https://radios2s.scriptel.nl",
+    "content_security_policy": "script-src 'self' https://ipinfo.io; object-src 'self'",
     "permissions": [
         "http://*/*",
         "https://*/*",

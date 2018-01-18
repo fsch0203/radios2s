@@ -1,4 +1,4 @@
-var version = "Version 0.3.0";
+var version = "Version 0.3.2";
 var xtrastat = TAFFY(); //stations added by user
 var favorits = TAFFY(); //stations marked as favorit (with rating)
 var lim = 200;
@@ -62,7 +62,7 @@ var app = {
     // 'load', 'deviceready', 'offline', and 'online'.
     bindEvents: function() {
         if (this.testing_on_desktop || run_as === 'ext') {
-            this.loadScript("https://www.gstatic.com/cv/js/sender/v1/cast_sender.js", function(){
+            this.loadScript("js/cast_sender.js", function(){
                 console.log('Desktop: Loaded cast_sender.js');
             });
             this.loadScript("js/CastVideos.js", function(){
@@ -118,8 +118,9 @@ function init() {
     var vol = localStorage.getItem("lastvolume");
     if (vol) {
         setVolume(vol);
-        var rngvolume = document.getElementById('rngVolume');
-        rngvolume.value = vol;
+        // var rngvolume = document.getElementById('rngVolume');
+        // rngvolume.value = vol;
+        $("#volume-slider").simpleSlider("setValue", vol);
     }
 }
 
@@ -303,7 +304,7 @@ function SetStation(id){
                         mod: thisdevice.model,
                         uuid: thisdevice.uuid
                     }, function(results){
-                        // console.log('posted to radios2s.scriptel.nl: '+ results.id);
+                        console.log('posted to radios2s.scriptel.nl: '+ results.id);
                     });
                 }, "jsonp");
             });
@@ -528,7 +529,17 @@ $(document).ready(function () {
     swipe();
     init();
     app.initialize();
-    $('#play, #pause, .favicon, .w3-select').css( 'cursor', 'pointer' );
+    // $('#play, #pause, .favicon, .w3-select').css( 'cursor', 'pointer' );
+    $("#pause").on('click', function () {
+        $("#player").attr("src", '');
+        $("#play").show();
+        $("#pause").hide();
+    });
+    $("#play").on('click', function () {
+        $("#player").attr("src", urlplaying);
+        $("#play").hide();
+        $("#pause").show();
+    });
     $("#closeapp").on('click', function () {
         detectLanguage(); //next time the right language setting will apply (if setting has changed)
         if (navigator.app) { //closing is necessary if user wants to apply new language settings (if changed)
@@ -556,9 +567,17 @@ $(document).ready(function () {
     $("#favorits").on('click', function () {
         ShowFavorits(true);
     });
-    $("#rngVolume").on('input', function () {
-        setVolume(this.value);
-    });
+    // $("#rngVolume").on('input', function () {
+    //     setVolume(this.value);
+    // });
+    $("#volume-slider").bind("slider:changed", function (event, data) {
+        // console.log(data.value);
+        setVolume(data.ratio);
+        // setVolume(data.value);
+      
+        // The value as a ratio of the slider (between 0 and 1)
+        // console.log(data.ratio);
+      });    
     $("#thumb-open").on('click', function () {
         // var id = favorits({tit: titplaying}).get()[0].id;
         $.post("http://www.radio-browser.info/webservice/json/vote/" + idplaying,  //set vote
@@ -747,6 +766,9 @@ $(document).ready(function () {
     });
     $('#initcast').on('click', function () {
         app.initialize();
+        w3_close();
+    });
+    $("#myOverlay").on('click', function () {
         w3_close();
     });
     $('#savestation').on('click', function () { //save or update new or edited station

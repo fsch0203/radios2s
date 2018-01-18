@@ -21,6 +21,8 @@ Based on config.xml the android apk is build in build.phonegap.com. The chrome e
 ## Change log
 
 #### Version 0.3.2
+- New slider based on simple-slider.js
+- No longer remote script injection
 - Minor bugs solved
 - Multi language: Dutch and German added
 

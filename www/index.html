@@ -7,10 +7,12 @@
 	<link rel='shortcut icon' type='image/x-icon' href='res/img/favicon.ico'/>
 	<link href="css/w3.css" rel="stylesheet" type="text/css" />
 	<link href="css/s2s.css" rel="stylesheet" type="text/css" />
+	<link href="css/simple-slider-volume.css" rel="stylesheet" type="text/css" />
 	<link href="css/star-rating-svg.css" rel="stylesheet" type="text/css" />
 	<script src="js/jquery-3.2.1.min.js"></script>
 	<script src="js/taffy-min.js"></script>
 	<script src="js/jquery.star-rating-svg.min.js"></script>
+	<script src="js/simple-slider.min.js"></script>
 	<script type="text/javascript" src="cordova.js"></script>
 	<script src="js/translate.js"></script>
 	<script src="js/s2s.js"></script>
@@ -31,7 +33,7 @@
 	</div>
 
 	<!-- Overlay -->
-	<div class="w3-overlay w3-animate-opacity" onclick="w3_close()" style="cursor:pointer" id="myOverlay"></div>
+	<div class="w3-overlay w3-animate-opacity" style="cursor:pointer" id="myOverlay"></div>
 	<div id="verticalbar"></div>
 
 	<header>
@@ -214,13 +216,14 @@
 					<div id="setrating" title="Set rating to make favorite"></div>
 				</div>
 			</div>
-			<div class="w3-cell-row" style="height:40px;">
-				<div class="w3-container w3-cell" style="width:25%">
+			<div id="playpause-row" class="w3-cell-row">
+				<div id="playpause" class="w3-container w3-cell">
 					<div id="play"></div>
 					<div id="pause"></div>
 				</div>
 				<div class="w3-container w3-cell" id="volume_control">
-					<input type="range" id="rngVolume" min="0" max="1" step="0.01" value="1">
+                    <!-- <input type="range" id="rngVolume" min="0" max="1" step="0.01" value="1"> -->
+                    <input id="volume-slider" type="text" data-slider="true" data-slider-theme="volume">
 				</div>
 				<audio id="player" src=""></audio>
 				<div class="favicon infothisstation" title="Click to get information on this station">
