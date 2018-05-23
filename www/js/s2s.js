@@ -1,4 +1,4 @@
-var version = "Version 0.3.2";
+var version = "Version 0.3.3";
 var xtrastat = TAFFY(); //stations added by user
 var favorits = TAFFY(); //stations marked as favorit (with rating)
 var lim = 200;
