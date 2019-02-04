@@ -1,10 +1,10 @@
-# RadioS2S
+ # RadioS2S
 
 RadioS2S is an android application and chrome extension with which you can listen to every radio station that is available on the web. You can already choose from more than 17.000 stations, but you can add your own if one is missing. Every weblink that is playable in a webbrowser (HTML5) can be added. With the quick search option it's very easy to find you station.
 
 You can find the Android app in the [Google Playstore](https://play.google.com/store/apps/details?id=com.scriptel.simplyradio). And the Chrome extension in the [Chrome Web Store](https://chrome.google.com/webstore/detail/radio-station-to-station/bjgdhmgldpmbfokgehkdkddahldjjmnc).
 
-We have tried to make the user interface as simple as possible:
+I have tried to make the user interface as simple as possible:
 * select on country, style (genre) or language
 * quick search by typing in (part of the) the name of the station
 * give one or more stars if you want to save a station as a favorite
@@ -20,8 +20,12 @@ Based on config.xml the android apk is build in build.phonegap.com. The chrome e
 
 ## Change log
 
+#### Version 1.0.0
+- First stable version
+- TargetSdkVersion greater than 26
+
 #### Version 0.3.3
-- App starts in own window (chrome extension)
+- App starts in its own window (chrome extension)
 
 #### Version 0.3.2
 - New slider based on simple-slider.js
