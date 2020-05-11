@@ -7,13 +7,15 @@
     <author email="fsch0203@gmail.com" href="http://radios2s.scriptel.nl">
 		Frans Schrijver
 	</author>
+    <preference name="phonegap-version" value="cli-7.1.0" />
     <preference name="permissions" value="none" />
     <platform name="android" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
-	<icon src="s2s-icon-512.png" />
-	<splash src="splash.png" />
+	<icon src="www/s2s-icon-512.png" />
+	<splash src="www/splash.png" />
     <engine name="browser" spec="~4.1.0" />
+    <plugin name="cordova.plugins.diagnostic" source="npm" />
     <plugin name="cordova-plugin-chromecast" spec="https://github.com/nbabanov/cordova-chromecast.git" />
     <plugin name="cordova-plugin-whitelist" spec="1.3.1" />
     <plugin name="cordova-plugin-device" source="npm" />
