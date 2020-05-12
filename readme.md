@@ -20,6 +20,12 @@ Based on config.xml the android apk is build in build.phonegap.com. The chrome e
 
 ## Change log
 
+#### Version 1.1.0
+- Improved scaling of volume slider
+- Small changes in layout
+- Option added to show information of non-playing station
+- Skipped storage permission
+
 #### Version 1.0.0
 - First stable version
 - TargetSdkVersion greater than 26

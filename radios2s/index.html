@@ -2,240 +2,276 @@
 <html>
 
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta charset="utf-8">
-	<link rel='shortcut icon' type='image/x-icon' href='res/img/favicon.ico'/>
-	<link href="css/w3.css" rel="stylesheet" type="text/css" />
-	<link href="css/s2s.css" rel="stylesheet" type="text/css" />
-	<link href="css/simple-slider-volume.css" rel="stylesheet" type="text/css" />
-	<link href="css/star-rating-svg.css" rel="stylesheet" type="text/css" />
-	<script src="js/jquery-3.2.1.min.js"></script>
-	<script src="js/taffy-min.js"></script>
-	<script src="js/jquery.star-rating-svg.min.js"></script>
-	<script src="js/simple-slider.min.js"></script>
-	<script type="text/javascript" src="cordova.js"></script>
-	<script src="js/translate.js"></script>
-	<script src="js/s2s.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <link rel='shortcut icon' type='image/x-icon' href='res/img/favicon.ico' />
+    <link href="css/w3.css" rel="stylesheet" type="text/css" />
+    <link href="css/s2s.css" rel="stylesheet" type="text/css" />
+    <link href="css/simple-slider-volume.css" rel="stylesheet" type="text/css" />
+    <!-- <link href="css/star-rating-svg.css" rel="stylesheet" type="text/css" /> -->
+    <link href="css/rateit.css" rel="stylesheet" type="text/css" />
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/taffy-min.js"></script>
+    <!-- <script src="js/jquery.star-rating-svg.min.js"></script> -->
+    <script src="js/jquery.rateit.min.js"></script>
+    <script src="js/simple-slider.min.js"></script>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script src="js/translate.js"></script>
+    <script src="js/s2s.js"></script>
 </head>
 <title>Radio S2S</title>
 
 <!-- <body onload="onLoad()"> -->
+
 <body>
-	<!-- Sidebar -->
-	<div class="w3-sidebar w3-bar-block w3-border-right w3-animate-left" style="display:none; z-index:10; width:50%;" id="mySidebar">
-		<button class="w3-bar-item w3-large fs-black" id=close-sidebar></button>
-		<a href="#" class="w3-bar-item w3-button" id="makenewstation"></a>
-		<a href="#" class="w3-bar-item w3-button" id="goeditstations"></a>
-		<a href="#" class="w3-bar-item w3-button infothisstation" id="playingstation"></a>
-		<button class="w3-bar-item w3-button" id="initcast"></button>
-		<a href="#" class="w3-bar-item w3-button" id="closeapp"></a>
-		<a href="#" class="w3-bar-item w3-button goabout" id="goabout"></a>
-	</div>
+    <!-- Sidebar -->
+    <div class="w3-sidebar w3-bar-block w3-border-right w3-animate-left" style="display:none; z-index:10; width:50%;"
+         id="mySidebar">
+        <button class="w3-bar-item w3-large fs-black" id=close-sidebar></button>
+        <a href="#" class="w3-bar-item w3-button" id="makenewstation"></a>
+        <a href="#" class="w3-bar-item w3-button" id="goeditstations"></a>
+        <a href="#" class="w3-bar-item w3-button infothisstation" id="playingstation"></a>
+        <button class="w3-bar-item w3-button" id="initcast"></button>
+        <a href="#" class="w3-bar-item w3-button" id="closeapp"></a>
+        <a href="#" class="w3-bar-item w3-button goabout" id="goabout"></a>
+    </div>
 
-	<!-- Overlay -->
-	<div class="w3-overlay w3-animate-opacity" style="cursor:pointer" id="myOverlay"></div>
-	<div id="verticalbar"></div>
+    <!-- Overlay -->
+    <div class="w3-overlay w3-animate-opacity" style="cursor:pointer" id="myOverlay"></div>
+    <div id="verticalbar"></div>
 
-	<header>
-		<div class="fs-teal">
-			<button class="w3-button w3-xlarge xclose" id="btn-sidemenu">&#9776;</button>
-			<div class="w3-container fs-teal contheader">
-				<!-- <h2 class="goabout">Radio S<span class="w3-xlarge">2</Span>S</h2> -->
-				<!-- <h2 class="goabout">Station-to-Station</h2> -->
-				<div class="w3-cell-row subtitle goabout">Radio S<span style="font-size:80%">2</span>S</div>
-				<div class="w3-cell-row title goabout">Station-to-Station</div>
+    <header>
+        <div class="fs-teal">
+            <button class="w3-button w3-xlarge xclose" id="btn-sidemenu">&#9776;</button>
+            <div class="w3-container fs-teal contheader">
+                <!-- <h2 class="goabout">Radio S<span class="w3-xlarge">2</Span>S</h2> -->
+                <!-- <h2 class="goabout">Station-to-Station</h2> -->
+                <div class="w3-cell-row subtitle goabout">Radio S<span style="font-size:80%">2</span>S</div>
+                <div class="w3-cell-row title goabout">Station-to-Station</div>
 
-			</div>
-		</div>
-			<div class="w3-display-topright casticon connected" id="casticonactive"></div>
-			<div class="w3-display-topright casticon notconnected" id="casticonidle"></div>
-		<div class="w3-cell-row">
-			<div class="w3-container fs-black w3-cell w3-cell-middle" style="width:33.4%" id="cont-cou">
-				<select class="w3-select w3-border-0 fs-black country" name="country" id="cou">
-				</select>
-			</div>
-			<div class="w3-container fs-black w3-cell w3-cell-middle" style="width:33.4%" id="cont-sty">
-				<select class="w3-select w3-border-0 fs-black style" name="style" id="sty">
-				</select>
-			</div>
-			<div class="w3-container fs-black w3-cell w3-cell-middle" id="cont-lan">
-				<select class="w3-select w3-border-0 fs-black language" name="language" id="lan">
-				</select>
-			</div>
-		</div>
-	</header>
-	<div>
-		<!--Central part-->
-		<div id="centralpart" class="w3-container"  style="padding-top:8.5em; padding-bottom:8em;">
-			<div class="w3-container w3-cell" style="padding-left:0em; width:84%">
-				<input class="w3-input w3-border w3-padding" type="search" placeholder="Search for stations.." id="myFilter">
-			</div>
-			<div class="w3-container w3-cell w3-cell-middle">
-				<a href="#" class="w3-button fs-black w3-ripple" id="favorits"></a>
-			</div>
-  			<table class="w3-table-all w3-margin-top" id="activelist">
-			<!--Radio list-->
-			</table>
-		</div>
+            </div>
+        </div>
+        <div class="w3-display-topright casticon connected" id="casticonactive"></div>
+        <div class="w3-display-topright casticon notconnected" id="casticonidle"></div>
+        <div class="w3-cell-row">
+            <div class="w3-container fs-black w3-cell w3-cell-middle" style="width:33.4%" id="cont-cou">
+                <select class="w3-select w3-border-0 fs-black country" name="country" id="cou">
+                </select>
+            </div>
+            <div class="w3-container fs-black w3-cell w3-cell-middle" style="width:33.4%" id="cont-sty">
+                <select class="w3-select w3-border-0 fs-black style" name="style" id="sty">
+                </select>
+            </div>
+            <div class="w3-container fs-black w3-cell w3-cell-middle" id="cont-lan">
+                <select class="w3-select w3-border-0 fs-black language" name="language" id="lan">
+                </select>
+            </div>
+        </div>
+    </header>
+    <div>
+        <!--Central part-->
+        <div id="centralpart" class="w3-container" style="padding-top:8.5em; padding-bottom:8em;">
+            <div class="w3-container w3-cell">
+                <input class="w3-input w3-border w3-padding" type="search" placeholder="Search for stations.."
+                       id="myFilter">
+            </div>
+            <div class="w3-container w3-cell w3-cell-middle">
+                <a href="#" class="w3-button fs-black w3-ripple" id="favorits"></a>
+            </div>
+            <table class="w3-table-all w3-margin-top" id="activelist">
+                <!--Radio list-->
+            </table>
+        </div>
 
-		<!--Popup for 'Hi there!', 'About'-->
-		<div id="popup01" class="w3-modal">
-			<div class="w3-modal-content w3-card-4">
-				<div class="w3-container fs-light-blue">
-					<span id="closepopup01" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
-					<h2 id="popupheader"></h2>
-				</div>
-				<div class="w3-container" id="popupmessage">
-					<!--message-->
-				</div>
-				<div id="logo"></div>
-				<footer class="w3-container fs-light-blue">
-				</footer>
-			</div>
-		</div>
+        <!--Popup for 'Hi there!', 'About'-->
+        <div id="popup01" class="w3-modal">
+            <div class="w3-modal-content w3-card-4">
+                <div class="w3-container fs-light-blue">
+                    <span id="closepopup01" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
+                    <h2 id="popupheader"></h2>
+                </div>
+                <div class="w3-container" id="popupmessage">
+                    <!--message-->
+                </div>
+                <div id="logo"></div>
+                <footer class="w3-container fs-light-blue">
+                </footer>
+            </div>
+        </div>
 
-		<!--Popup for Infoplayingstation-->
-		<div id="infoplayingstation" class="w3-modal">
-			<div class="w3-modal-content w3-card-4">
-				<div class="w3-container fs-light-blue">
-					<span id="close-infoplayingstation" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
-					<h2 id="playingstat"></h2>
-				</div>
-				<div class="w3-container" id="popupmessage">
-					<h2 class="titplaying"></h2>
-					<p id="inf-urlplaying"></p>
-					<table class='w3-table-all w3-margin-top'>
-						<tr><td style='width:7.5em;' id="lb-homeurl">;</td><td><a id="inf-homeurl" href='' target='_blank'></a></td></tr>
-						<tr><td id="lb-country"></td><td id=inf-country></td></tr>
-						<tr><td id="lb-state"></td><td id=inf-state></td></tr>
-						<tr><td id="lb-tags"></td><td id=inf-tags></td></tr>
-						<tr><td id="lb-language"></td><td id=inf-language></td></tr>
-						<tr><td id="lb-codec"></td><td id="inf-codec"></td></tr>
-						<tr><td id="lb-bitrate"></td><td id="inf-bitrate"></td></tr>
-						<tr><td id="lb-setrating2"></td>
-							<td>
-								<div id="ratingzero2" class="w3-container w3-cell ratingzero"></div>
-								<div class="w3-container w3-cell" style="width:120px; padding-left:0px">
-									<div id="setrating2"></div>
-								</div>
-								<!-- <div id='setrating2'></div> -->
-							</td></tr>
-						<tr><td id="lb-votes"></td><td><span id='inf-votes'></span>
-							<span id="thumb-open"></span><span id="thumb-closed"></span></td></tr>
-					</table><br/>
-				</div>
-				<div id="favicon2"></div>
-				<footer class="w3-container fs-light-blue">
-				</footer>
-			</div>
-		</div>
+        <!--Popup for Infoplayingstation-->
+        <div id="infoplayingstation" class="w3-modal">
+            <div class="w3-modal-content w3-card-4">
+                <div class="w3-container fs-light-blue">
+                    <span id="close-infoplayingstation"
+                          class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
+                    <h2 id="playingstat"></h2>
+                </div>
+                <div class="w3-container" id="popupmessage">
+                    <h2 class="titplaying"></h2>
+                    <p id="inf-urlplaying"></p>
+                    <table class='w3-table-all w3-margin-top'>
+                        <tr>
+                            <td style='width:7.5em;' id="lb-homeurl">;</td>
+                            <td><a id="inf-homeurl" href='' target='_blank'></a></td>
+                        </tr>
+                        <tr>
+                            <td id="lb-country"></td>
+                            <td id=inf-country></td>
+                        </tr>
+                        <tr>
+                            <td id="lb-state"></td>
+                            <td id=inf-state></td>
+                        </tr>
+                        <tr>
+                            <td id="lb-tags"></td>
+                            <td id=inf-tags></td>
+                        </tr>
+                        <tr>
+                            <td id="lb-language"></td>
+                            <td id=inf-language></td>
+                        </tr>
+                        <tr>
+                            <td id="lb-codec"></td>
+                            <td id="inf-codec"></td>
+                        </tr>
+                        <tr>
+                            <td id="lb-bitrate"></td>
+                            <td id="inf-bitrate"></td>
+                        </tr>
+                        <tr>
+                            <td id="lb-setrating2"></td>
+                            <td>
+                                <!-- <div id="ratingzero2" class="w3-container w3-cell ratingzero"></div> -->
+                                <div class="w3-container w3-cell" style="width:120px; padding-left:0px">
+                                    <!-- <div id="setrating2"></div> -->
+                                    <!-- <div class="rateit rateitinfo" id="rateitinfo" data-rateit-step="1" data-rateit-mode="font" style="font-size:25px"></div> -->
+                                    <div class="rateit" id="rateitinfo" data-rateit-step="1"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="lb-votes"></td>
+                            <td><span id='inf-votes'></span>
+                                <span id="thumb-open"></span><span id="thumb-closed"></span></td>
+                        </tr>
+                    </table><br />
+                </div>
+                <div id="favicon2"></div>
+                <footer class="w3-container fs-light-blue">
+                </footer>
+            </div>
+        </div>
 
-		<!--Popup new/edit station-->
-		<div id="editstation" class="w3-modal">
-			<div class="w3-modal-content w3-card-4">
-				<div class="w3-container fs-light-blue">
-					<span id="close-editstation" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
-					<h2 id="titleeditform"></h2>
-				</div>
-				<form method="post" class="w3-container" id="editstationform">
-					<p>
-					<label id="namestation"></label><label style="color:red;">&nbsp;*</label>
-					<input name="itit" class="w3-input" type="text" id="itit"></p>
-					<p>
-					<label id="stream"></label><label style="color:red;">&nbsp;*</label>
-					<input name="iu1" class="w3-input" type="text" id="iu1"></p>
-					<div class="w3-cell-row">
-						<div class="w3-cell w3-cell-middle" style="width:33.4%">
-							<br>
-							<select class="w3-select country" name="icou" id="icou">
-							</select>
-						</div>
-						<div class="w3-cell w3-cell-middle" style="width:33.4%">
-							<br>
-							<select class="w3-select style" name="isty" id="isty">
-							</select>
-						</div>
-						<div class="w3-cell w3-cell-middle">
-							<br>
-							<select class="w3-select language" name="ilan" id="ilan">
-							</select>
-						</div>
-					</div>
-					<p>
-					<label id="homepage"></label>
-					<input name="ihom" class="w3-input" type="text" id="ihom"></p>
-					<p>
-					<label id="favicon"></label>
-					<input name="ifav" class="w3-input" type="text" id="ifav"></p>
-					<p>
-					<label id="state"></label>
-					<input name="ista" class="w3-input" type="text" id="ista"></p>
-					<p>
-					<div style="float:right">
-						<a href="#" class="w3-button fs-light-blue w3-ripple" id="btn-newstation" ></a>
-						<a href="#" class="w3-button fs-steel w3-ripple" id="btn-deletestation" ></a>
-						<a href="#" class="w3-button fs-light-blue w3-ripple" id="savestation" ></a>
-						<a href="#" class="w3-button fs-steel w3-ripple" id="cancelstation" ></a>
-					</div>
-					<br><br>
-				</form>
-				<footer class="w3-container fs-teal">
-				</footer>
-			</div>
-		</div>
+        <!--Popup new/edit station-->
+        <div id="editstation" class="w3-modal">
+            <div class="w3-modal-content w3-card-4">
+                <div class="w3-container fs-light-blue">
+                    <span id="close-editstation" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
+                    <h2 id="titleeditform"></h2>
+                </div>
+                <form method="post" class="w3-container" id="editstationform">
+                    <p>
+                        <label id="namestation"></label><label style="color:red;">&nbsp;*</label>
+                        <input name="itit" class="w3-input" type="text" id="itit"></p>
+                    <p>
+                        <label id="stream"></label><label style="color:red;">&nbsp;*</label>
+                        <input name="iu1" class="w3-input" type="text" id="iu1"></p>
+                    <div class="w3-cell-row">
+                        <div class="w3-cell w3-cell-middle" style="width:33.4%">
+                            <br>
+                            <select class="w3-select country" name="icou" id="icou">
+                            </select>
+                        </div>
+                        <div class="w3-cell w3-cell-middle" style="width:33.4%">
+                            <br>
+                            <select class="w3-select style" name="isty" id="isty">
+                            </select>
+                        </div>
+                        <div class="w3-cell w3-cell-middle">
+                            <br>
+                            <select class="w3-select language" name="ilan" id="ilan">
+                            </select>
+                        </div>
+                    </div>
+                    <p>
+                        <label id="homepage"></label>
+                        <input name="ihom" class="w3-input" type="text" id="ihom"></p>
+                    <p>
+                        <label id="favicon"></label>
+                        <input name="ifav" class="w3-input" type="text" id="ifav"></p>
+                    <p>
+                        <label id="state"></label>
+                        <input name="ista" class="w3-input" type="text" id="ista"></p>
+                    <p>
+                        <div style="float:right">
+                            <a href="#" class="w3-button fs-light-blue w3-ripple" id="btn-newstation"></a>
+                            <a href="#" class="w3-button fs-steel w3-ripple" id="btn-deletestation"></a>
+                            <a href="#" class="w3-button fs-light-blue w3-ripple" id="savestation"></a>
+                            <a href="#" class="w3-button fs-steel w3-ripple" id="cancelstation"></a>
+                        </div>
+                        <br><br>
+                </form>
+                <footer class="w3-container fs-teal">
+                </footer>
+            </div>
+        </div>
 
-		<!--Popup list with own stations to edit-->
-		<div id="editstationslist" class="w3-modal">
-			<div class="w3-modal-content w3-card-4">
-				<div class="w3-container fs-light-blue">
-					<span id="close-editstationslist" class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
-					<h2 id="editstations"></h2>
-				</div>
+        <!--Popup list with own stations to edit-->
+        <div id="editstationslist" class="w3-modal">
+            <div class="w3-modal-content w3-card-4">
+                <div class="w3-container fs-light-blue">
+                    <span id="close-editstationslist"
+                          class="w3-button w3-display-topright w3-xlarge xclose">&times;</span>
+                    <h2 id="editstations"></h2>
+                </div>
 
-				<table class="w3-table-all" id="editlist">
-				<!--Radio list-->
-				</table>
+                <table class="w3-table-all" id="editlist">
+                    <!--Radio list-->
+                </table>
 
-				<footer class="w3-container fs-teal">
-					<!--<p></p>-->
-				</footer>
-			</div>
-		</div>
+                <footer class="w3-container fs-teal">
+                    <!--<p></p>-->
+                </footer>
+            </div>
+        </div>
 
-		<a href="#" class="scrollToTop w3-display-bottomright"></a>
+        <a href="#" class="scrollToTop w3-display-bottomright"></a>
 
-		<!--Footer-->
-		<div id="footer" class="w3-container w3-bottom fs-teal" style="padding:0px !important">
-			<div class="w3-cell-row" style="height:30px;">
-				<div class="w3-container w3-cell" style="padding-right:0px">
-					<marquee id="selectedstation" behavior="scroll" scrollamount="5" direction="left"></marquee>
-				</div>
-				<div id="ratingzero" class="w3-container w3-cell ratingzero">
-				</div>
-				<div class="w3-container w3-cell" style="width:120px; padding-left:0px">
-					<div id="setrating" title="Set rating to make favorite"></div>
-				</div>
-			</div>
-			<div id="playpause-row" class="w3-cell-row">
-				<div id="playpause" class="w3-container w3-cell">
-					<div id="play"></div>
-					<div id="pause"></div>
-				</div>
-				<div class="w3-container w3-cell" id="volume_control">
+        <!--Footer-->
+        <div id="footer" class="w3-container w3-bottom fs-teal" style="padding:0px !important">
+            <div class="w3-cell-row" style="height:30px;">
+                <div class="w3-container w3-cell" style="padding-right:0px">
+                    <marquee id="selectedstation" behavior="scroll" scrollamount="5" direction="left"></marquee>
+                </div>
+                <!-- <div id="ratingzero" class="w3-container w3-cell ratingzero">
+				</div> -->
+                <div class="w3-container w3-cell" style="float:right">
+                    <!-- <div id="setrating" title="Set rating to make favorite"></div> -->
+                    <div class="rateit" id="rateitfooter" data-rateit-step="1" data-rateit-mode="font"
+                         style="font-size:25px"></div>
+                </div>
+            </div>
+            <div id="playpause-row" class="w3-cell-row">
+                <div id="playpause" class="w3-container w3-cell">
+                    <div id="play"></div>
+                    <div id="pause"></div>
+                </div>
+                <div class="w3-container w3-cell" id="volume_control">
                     <!-- <input type="range" id="rngVolume" min="0" max="1" step="0.01" value="1"> -->
                     <input id="volume-slider" type="text" data-slider="true" data-slider-theme="volume">
-				</div>
-				<audio id="player" src=""></audio>
-				<div class="favicon infothisstation" title="Click to get information on this station">
-				</div>
-			</div>
-			<div class="w3-container" style="height:20px;">
-				<div class="w3-padding w3-display-topmmiddle" style="padding-top:0px !important">
-					<div class="url"></div>
-				</div>
-			</div>
-		</div>
-	</div>
+                </div>
+                <audio id="player" src=""></audio>
+                <div class="favicon infothisstation" title="Click to get information on this station">
+                </div>
+            </div>
+            <div class="w3-container" style="height:20px;">
+                <div class="w3-padding w3-display-topmmiddle" style="padding-top:0px !important">
+                    <div class="url"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

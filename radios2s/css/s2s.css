@@ -28,11 +28,15 @@
     top: 64px;
 }
 
-.ratingzero{
+/* .ratingzero{
   width: 20px;
   height: 100%;
   padding: 5px 0px 0px 0px;
   text-align: right;
+}
+ */
+.rateit{
+    width: 120px;
 }
 
 .stars {
@@ -59,6 +63,10 @@
 
 #stars1 {
     background-image:url('../res/img/1star.png');
+}
+
+#centralpart{
+    padding: 6.32em 0em 8em 0em;
 }
 
 .thumbopen{
@@ -126,6 +134,7 @@
   margin-right: 20px;
   background-size: 100% 100%;
   background-image: url('../res/icon/thumb-up-open.png');
+  cursor: pointer;
 }
 
 #thumb-closed {
@@ -274,17 +283,55 @@ input[type=search]::-webkit-search-cancel-button {
 table {
     table-layout: fixed;
     width: 100%;
+    line-height: 1.1em;
 }
 
 table td {
     word-wrap: break-word;         /* All browsers since IE 5.5+ */
     overflow-wrap: break-word;     /* Renamed property in CSS3 draft spec */
+}
+
+table#activelist td {
     cursor: pointer;
 }
 
 tr:active {
   color: #fff;
   background-color: #647687 !important
+}
+
+.td-left{
+    padding: 4px 0px 4px 9px !important;
+    text-align: left;
+    width: 6px;
+    vertical-align: middle !important;
+}
+
+.td-center {
+    /* padding: 4px 0px 4px 6px !important; */
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.td-right {
+    padding: 4px 8px 4px 0px !important;
+    text-align: right !important;
+    width: 55px;
+    vertical-align: middle !important;
+}
+
+.label-small {
+    font-size: 0.8em;
+}
+
+img{
+    margin-bottom: 0px;
+}
+
+.edit-icon {
+    margin-right: 4px;
+    vertical-align: top;
+    cursor: pointer;
 }
 
 .casticon {

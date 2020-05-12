@@ -11,12 +11,15 @@ var castconnected = "unavailable";
 var urlplaying;
 var titplaying;
 var idplaying;
-var thisdevice = {model:"", uuid:""};
+var thisdevice = {
+    model: "",
+    uuid: ""
+};
 var lgnr; //us:0, nl:1
 var _lg;
-var lg_device = window.navigator.language.slice(0,2);
+var lg_device = window.navigator.language.slice(0, 2);
 lg_device = (lg_device) ? lg_device : "us";
-setLanguage(); 
+setLanguage();
 
 var run_as = 'web'; //run as web-application (default: web), as chrome-extension (ext), as chrome-app (app) or as NodeWebkit-app (kit)
 try {
@@ -26,10 +29,10 @@ try {
 } catch (err) {
     //run_as = 'web';
 }
-console.log('run_as'+': '+run_as);
+console.log('run_as' + ': ' + run_as);
 
 function setLanguage() {
-    var lg =localStorage.getItem("lgdevice"); //only relevant for android; in web/chrome lgdevice is not stored
+    var lg = localStorage.getItem("lgdevice"); //only relevant for android; in web/chrome lgdevice is not stored
     lg_device = (lg) ? lg : lg_device;
     // lg_device = 'us';
     switch (lg_device) {
@@ -52,7 +55,7 @@ function setLanguage() {
 var app = {
     testing_on_desktop: true,
     // Application Constructor
-    initialize: function() {
+    initialize: function () {
         if (document.URL.indexOf("http://" || "file://") === -1) {
             this.testing_on_desktop = false;
         }
@@ -60,27 +63,27 @@ var app = {
     },
     // Bind Event Listeners Bind any events that are required on startup. Common events are:
     // 'load', 'deviceready', 'offline', and 'online'.
-    bindEvents: function() {
+    bindEvents: function () {
         if (this.testing_on_desktop || run_as === 'ext') {
-            this.loadScript("js/cast_sender.js", function(){
+            this.loadScript("js/cast_sender.js", function () {
                 console.log('Desktop: Loaded cast_sender.js');
             });
-            this.loadScript("js/CastVideos.js", function(){
+            this.loadScript("js/CastVideos.js", function () {
                 var castPlayer = new CastPlayer();
             });
-        }else{
+        } else {
             document.addEventListener('deviceready', this.onDeviceReady, false);
         }
     },
     // deviceready Event Handler The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
-    onDeviceReady: function() {
+    onDeviceReady: function () {
         app.receivedEvent('deviceready');
     },
     // Update DOM on a Received Event
-    receivedEvent: function(id) {
+    receivedEvent: function (id) {
         console.log('Received Event: ' + id);
-        this.loadScript("js/CastVideos.js", function(){
+        this.loadScript("js/CastVideos.js", function () {
             console.log('Device: Loaded CastVideos.js');
             var castPlayer = new CastPlayer();
         });
@@ -88,16 +91,16 @@ var app = {
     loadScript: function (url, callback) {
         var script = document.createElement("script")
         script.type = "text/javascript";
-        if (script.readyState){  //IE
-            script.onreadystatechange = function(){
+        if (script.readyState) { //IE
+            script.onreadystatechange = function () {
                 if (script.readyState == "loaded" ||
-                    script.readyState == "complete"){
+                    script.readyState == "complete") {
                     script.onreadystatechange = null;
                     callback();
                 }
             };
-        } else {  //Others
-            script.onload = function(){
+        } else { //Others
+            script.onload = function () {
                 callback();
             };
         }
@@ -118,8 +121,7 @@ function init() {
     var vol = localStorage.getItem("lastvolume");
     if (vol) {
         setVolume(vol);
-        // var rngvolume = document.getElementById('rngVolume');
-        // rngvolume.value = vol;
+        vol = Math.pow(vol, 1 / 3);
         $("#volume-slider").simpleSlider("setValue", vol);
     }
 }
@@ -128,6 +130,7 @@ function w3_open() { //sidebar open, overlay for dark background
     $("#mySidebar").show();
     $("#myOverlay").show();
 }
+
 function w3_close() {
     $("#mySidebar").hide();
     $("#myOverlay").hide();
@@ -221,15 +224,16 @@ function showRecent(cat, items) { //input: array of index numbers
 var didScroll;
 var lastScrollTop = 0;
 var delta = 5;
-$(window).scroll(function(event){
+$(window).scroll(function (event) {
     didScroll = true;
 });
-setInterval(function() { //check scroll every 250ms
+setInterval(function () { //check scroll every 250ms
     if (didScroll) {
         hasScrolled();
         didScroll = false;
     }
 }, 250);
+
 function hasScrolled() {
     var navbarHeight = $('header').outerHeight();
     var st = $(this).scrollTop();
@@ -255,68 +259,77 @@ function setVolume(volume) {
     localStorage.setItem("lastvolume", volume);
 }
 
-function SetStation(id){
+function SetStation(id) {
     $.post("http://www.radio-browser.info/webservice/v2/json/url/" + id, //get playable station url
-    function(res) {
-        if (res.ok == 'true') {
-            urlplaying = res.url;
-            // get other info of station ----------------
-            $.post("http://www.radio-browser.info/webservice/json/stations/byid/" + id, 
-            function(results){
-                var urlfavicon = results[0].favicon;
-                    if (results[0].favicon){
-                    $('.favicon').css({"background-image":"url(" + urlfavicon + ")", "display":"block"})
-                } else {
-                    $('.favicon').css("display","none")
-                }
-                titplaying = results[0].name;
-                idplaying = id;
-                localStorage.setItem("laststation", id);
-                var btr = results[0].bitrate; //bitrate
-                $("#selectedstation").html(titplaying + " - " + btr + " kbps");
-                if(favorits({tit:titplaying}).count()>0){ //show if selected station is favorit
-                    var r = favorits({tit:titplaying}).get()[0].rat;
-                    $('#setrating').starRating('setRating', r, true)
-                    $('.ratingzero').html('X');
-                } else{ //no favorit
-                    $('#setrating').starRating('setRating', 0, true)
-                    $('.ratingzero').html('');
-                }
-                console.log('urlplaying id' + ': ' + urlplaying+' '+ id);
-                $("#player").attr("src", urlplaying);
-                var x1 = jQuery.trim(urlplaying).substring(0, 42).trim(this);
-                x1 = (urlplaying.length > x1.length) ? x1 + "..." : x1;
-                $(".url").html(x1);
-                var pl = document.getElementById('play');
-                pl.click(); //activate CastVideo.js
-                $.get("https://ipinfo.io", function(ipinfo) {
-                    // ipaddress = ipinfo.ip;
-                    $.post("https://radios2s.scriptel.nl/sure/savestation03.php", {
-                        id: id,
-                        tit: titplaying,
-                        ip : ipinfo.ip,
-                        hostname : ipinfo.hostname,
-                        city : ipinfo.city,
-                        region : ipinfo.region,
-                        country : ipinfo.country,
-                        loc : ipinfo.loc,
-                        org : ipinfo.org,
-                        mod: thisdevice.model,
-                        uuid: thisdevice.uuid
-                    }, function(results){
-                        console.log('posted to radios2s.scriptel.nl: '+ results.id);
+        function (res) {
+            if (res.ok == 'true') {
+                urlplaying = res.url;
+                // get other info of station ----------------
+                $.post("http://www.radio-browser.info/webservice/json/stations/byid/" + id,
+                    function (results) {
+                        var urlfavicon = results[0].favicon;
+                        if (results[0].favicon) {
+                            $('.favicon').css({
+                                "background-image": "url(" + urlfavicon + ")",
+                                "display": "block"
+                            })
+                        } else {
+                            $('.favicon').css("display", "none")
+                        }
+                        titplaying = results[0].name;
+                        idplaying = id;
+                        localStorage.setItem("laststation", id);
+                        var btr = results[0].bitrate; //bitrate
+                        $("#selectedstation").html(titplaying + " - " + btr + " kbps");
+                        if (favorits({
+                                tit: titplaying
+                            }).count() > 0) { //show if selected station is favorit
+                            var r = favorits({
+                                tit: titplaying
+                            }).get()[0].rat;
+                            $('#rateitfooter').rateit('value', r)
+                            $('.ratingzero').html('X');
+                        } else { //no favorit
+                            $('#rateitfooter').rateit('value', 0)
+                            $('.ratingzero').html('');
+                        }
+                        console.log('urlplaying id' + ': ' + urlplaying + ' ' + id);
+                        $("#player").attr("src", urlplaying);
+                        var x1 = jQuery.trim(urlplaying).substring(0, 42).trim(this);
+                        x1 = (urlplaying.length > x1.length) ? x1 + "..." : x1;
+                        $(".url").html(x1);
+                        var pl = document.getElementById('play');
+                        pl.click(); //activate CastVideo.js
+                        $.get("https://ipinfo.io", function (ipinfo) {
+                            // ipaddress = ipinfo.ip;
+                            $.post("https://radios2s.scriptel.nl/sure/savestation03.php", {
+                                id: id,
+                                tit: titplaying,
+                                ip: ipinfo.ip,
+                                hostname: ipinfo.hostname,
+                                city: ipinfo.city,
+                                region: ipinfo.region,
+                                country: ipinfo.country,
+                                loc: ipinfo.loc,
+                                org: ipinfo.org,
+                                mod: thisdevice.model,
+                                uuid: thisdevice.uuid
+                            }, function (results) {
+                                console.log('posted to radios2s.scriptel.nl: ' + results.id);
+                            });
+                        }, "jsonp");
                     });
-                }, "jsonp");
-            });
-        } else  {
-            alert("Sorry, \nradio station is not availlable");
-        }
-    });
+            } else {
+                alert("Sorry, \nradio station is not availlable");
+            }
+        });
 }
 
-function EditStation(tit){
-    var rs = xtrastat({tit: tit}).get()[0];
-    document.getElementById('editstation').style.display='block';
+function EditStation(tit) {
+    var rs = xtrastat({
+        tit: tit
+    }).get()[0];
+    document.getElementById('editstation').style.display = 'block';
     $("#itit").val(tit);
     $("#icou").val(rs.cou);
     $("#isty").val(rs.sty);
@@ -338,38 +351,48 @@ function Select() {
     sty = ($("#sty").val() == '') ? '' : styles[0][sty_nr];
     lan = ($("#lan").val() == '') ? '' : languages[0][lan_nr];
     filter = $("#myFilter").val();
-    var param = {name: filter, country: cou, tag: sty, language: lan, offset: st, limit:lim};
+    var param = {
+        name: filter,
+        country: cou,
+        tag: sty,
+        language: lan,
+        offset: st,
+        limit: lim
+    };
     $.post("http://www.radio-browser.info/webservice/json/stations/search", param, //get stations
-    function(results){
-        var list = '';
-        var n = 0;
-        for (i in results) {
-            list += "<tr id=" + results[i].id + "><td>" + results[i].name + "</td></tr>";
-            n += 1;
-        }
-        if (start === 0) {
-            $('#activelist').html(list);
-        } else {
-            $('#activelist').append(list);
-        }
-        // console.log('rows#' + ': ' + n);
-    });
-    $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');        
-    if (cou === '' && sty === '' && lan === '') {
-    } else if (cou !== '' && sty === '' && lan === '') {
+        function (results) {
+            var list = '';
+            var n = 0;
+            for (i in results) {
+                // list += "<tr id=" + results[i].id + "><td>" + results[i].name + "</td></tr>";
+                list += `<tr id=${results[i].id}><td class="td-left"></td><td class="td-center">
+            <span>${results[i].name}</span></td>
+            <td class="td-right"><span class="edit-icon"><img src="./res/img/info-128x128.png" width="30"></span></td>
+            </tr>`;
+                // n += 1;
+            }
+            if (start === 0) {
+                $('#activelist').html(list);
+            } else {
+                $('#activelist').append(list);
+            }
+            // console.log('rows#' + ': ' + n);
+        });
+    $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');
+    if (cou === '' && sty === '' && lan === '') {} else if (cou !== '' && sty === '' && lan === '') {
         $('#cont-cou, #cou').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         $("#cou").val(cou_nr); //show selected country in header
     } else if (cou === '' && sty !== '' && lan === '') {
-        $('#cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');        
+        $('#cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(sty_nr.toString(), "selstyles");
         $("#sty").val(Number(sty_nr));
     } else if (cou === '' && sty === '' && lan !== '') {
-        $('#cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');        
+        $('#cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(lan_nr.toString(), "sellanguages");
         $("#lan").val(lan_nr);
     } else if (cou !== '' && sty !== '' && lan === '') {
-        $('#cont-cou, #cou, #cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');        
+        $('#cont-cou, #cou, #cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         storeSelection(sty_nr.toString(), "selstyles");
         $("#cou").val(cou_nr);
@@ -387,7 +410,7 @@ function Select() {
         $("#sty").val(sty_nr);
         $("#lan").val(lan_nr);
     } else if (cou !== '' && sty !== '' && lan !== '') {
-        $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');        
+        $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         storeSelection(sty_nr.toString(), "selstyles");
         storeSelection(lan_nr.toString(), "sellanguages");
@@ -398,24 +421,24 @@ function Select() {
 }
 
 function storeSelection(elem, str) {
-    var sel; 
-    if(localStorage.getItem(str)){ // there are earlier selected countries/styles/languages
+    var sel;
+    if (localStorage.getItem(str)) { // there are earlier selected countries/styles/languages
         sel = localStorage.getItem(str).split(","); // set in array
-        if (sel.indexOf(elem)<0){ //if not already existing
+        if (sel.indexOf(elem) < 0) { //if not already existing
             sel.push(elem); //add to array
         }
     } else { //no earlier selected countries
         sel = [elem];
     }
     var n = sel.length;
-    if(n > 4){ //max # of recent countries
-        sel = sel.slice(n-4);
+    if (n > 4) { //max # of recent countries
+        sel = sel.slice(n - 4);
     }
     localStorage.setItem(str, sel.toString());
-    FillSelectOptions();    
+    FillSelectOptions();
 }
 
-function ShowFavorits(warning){ //if warning is true: message if there are no favorits (at start and if user clicks favorits button)
+function ShowFavorits(warning) { //if warning is true: message if there are no favorits (at start and if user clicks favorits button)
     var x;
     var list = '';
     // clear option boxes and search field
@@ -424,28 +447,38 @@ function ShowFavorits(warning){ //if warning is true: message if there are no fa
     $("#cou, #sty, #lan").val('').prop('selected', true);
     $("#myFilter").val('');
     $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');
-    if (favorits().count() > 0){
+    if (favorits().count() > 0) {
         for (var i = 5; i > 0; i--) {
-            x = favorits({rat:i}).order('tit').limit(lim).get();
-            if(x.length>0){
-                if(i===1){
-                    list += '<tr><th><div  class="stars" id="stars'+ i + '"></div>'  +' </th></tr>';
-                }else{
-                    list += '<tr><th><div  class="stars" id="stars'+ i + '"></div>'  + '</th></tr>';
+            x = favorits({
+                rat: i
+            }).order('tit').limit(lim).get();
+            if (x.length > 0) {
+                if (i === 1) {
+                    // list += '<tr><th></th><th><div class="stars" id="stars'+ i + '"></div>'  +' </th><th></th></tr>';
+                } else {
+                    // list += '<tr><th></th><th><div class="stars" id="stars'+ i + '"></div>'  +' </th><th></th></tr>';
+                    // list += '<tr><th><div  class="stars" id="stars'+ i + '"></div>'  + '</th></tr>';
                 }
             }
             for (var n = 0; n < x.length; n++) {
-                list += "<tr id=" + x[n].id + "><td>" + x[n].tit + "</td></tr>";
+                // list += "<tr id=" + x[n].id + "><td>" + x[n].tit + "</td></tr>";
+                list += `<tr id=${x[n].id}><td class="td-left"></td><td class="td-center">
+                    <span class="label-small">
+                    <img src="./res/img/${i}star.png" width="60">
+                    </span><br>
+                    <span>${x[n].tit}</span></td>
+                    <td class="td-right"><span class="edit-icon"><img src="./res/img/info-128x128.png" width="30"></span></td>
+                    </tr>`;
             }
         }
         $('#activelist').html(list);
     } else if (warning) { //no favorits yet
-        var msg = "<h4>"+ _lg.wrn02 + "</h4>";
-        msg += "<p>"+ _lg.wrn03 +"</p>";
+        var msg = "<h4>" + _lg.wrn02 + "</h4>";
+        msg += "<p>" + _lg.wrn03 + "</p>";
         var hd = _lg.wrn01;
         $("#favicon").removeClass("favicon2");
         $("#logo").hide();
-        showMessage(hd,msg);
+        showMessage(hd, msg);
         Select();
     } else { //no favorits, no warning
         $("#favicon").removeClass("favicon2");
@@ -454,7 +487,7 @@ function ShowFavorits(warning){ //if warning is true: message if there are no fa
     }
 }
 
-function UrlCheck(url){
+function UrlCheck(url) {
     var exp = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9]\.[^\s]{2,})/
     var regex = new RegExp(exp);
     if (url.match(regex)) {
@@ -464,7 +497,7 @@ function UrlCheck(url){
     }
 }
 
-$(window).on( "load", function(){
+$(window).on("load", function () {
     // console.log('document loaded');
     document.addEventListener("deviceready", onDeviceReady, false);
 });
@@ -477,14 +510,13 @@ function onDeviceReady() { //Only relevant for android app. Cordova's device API
         if (chrome.cast.isAvailable) {
             clearInterval(loadCastInterval);
             initializeCastApi();
-        } else {
-        }
+        } else {}
     }, 1000);
     thisdevice.model = device.model; //users device
     thisdevice.uuid = device.uuid; //unique id of device
 }
 
-function showMessage(hd,msg) {
+function showMessage(hd, msg) {
     $("#popupheader").html(hd);
     $("#popupmessage").html(msg);
     $("#popup01").show();
@@ -525,10 +557,84 @@ function swipe() { //activates swiperight and swipeleft
     });
 }
 
+function showStation(id) {
+    $.post("http://www.radio-browser.info/webservice/json/stations/byid/" + id, //get playing station
+        function (results) {
+            if (results[0] !== undefined) { //sometimes radiobrowser has no info on station
+                $("#thumb-open").show();
+                $("#thumb-closed").hide();
+                var rs = results[0];
+                // id = rs.id;
+                console.log(`${id}`);
+                if (rs.favicon) {
+                    $("#favicon2").addClass("favicon2");
+                    $('.favicon2').css({
+                        "background-image": "url(" + rs.favicon + ")",
+                        "display": "block"
+                    })
+                }
+                // console.log(`${id} ${idplaying}`);
+                if (id == idplaying) {
+                    $("#playingstat").html(_lg.Playingstation);
+                } else {
+                    $("#playingstat").html(_lg.Infostation);
+                }
+                // $('.titplaying').html(titplaying);
+                $('.titplaying').html(rs.name);
+                // $('#inf-urlplaying').html(urlplaying);
+                $('#inf-urlplaying').html(rs.url);
+                $("#inf-homeurl").attr("href", rs.homepage);
+                $("#inf-homeurl").html(rs.homepage);
+                $("#inf-country").html(rs.country);
+                $("#inf-state").html(rs.state);
+                $("#inf-tags").html(rs.tags);
+                $("#inf-language").html(rs.language);
+                $("#inf-codec").html(rs.codec);
+                $("#inf-bitrate").html(rs.bitrate + '&nbsp;kb/s');
+                $('#inf-votes').html(rs.votes);
+                var r = (favorits({
+                    id: id
+                }).count() > 0) ? favorits({
+                    id: id
+                }).get()[0].rat : 0;
+                console.log(`${r}`);
+                $('#rateitinfo').rateit('value', r);
+                $('#rateitinfo').closest('tr').attr('id', id);
+                $('#rateitinfo').closest('tr').attr('name', rs.name);
+                $("#infoplayingstation").show();
+            } else {
+                alert(_lg.noinfo);
+                favorits({
+                    id: id
+                }).remove();
+                ShowFavorits(false);
+            }
+        });
+}
+
 $(document).ready(function () {
     swipe();
     init();
     app.initialize();
+    $('#rateitinfo').bind('rated', function (e, rating) {
+        var id = $(this).closest('tr').attr('id');
+        var name = $(this).closest('tr').attr('name');
+        console.log(`updateRating: ${rating} ${id} ${name}`);
+        updateRating(rating, id, name);
+    });
+    $("#rateitinfo").bind('reset', function () {
+        console.log(`reset`);
+        var id = $(this).closest('tr').attr('id');
+        var name = $(this).closest('tr').attr('name');
+        updateRating(0, id, name);
+    });
+    $('#rateitfooter').bind('rated', function (e, rating) {
+        updateRating(rating, idplaying, titplaying);
+    });
+    $("#rateitfooter").bind('reset', function () {
+        updateRating(0, idplaying, titplaying);
+    });
+
     // $('#play, #pause, .favicon, .w3-select').css( 'cursor', 'pointer' );
     $("#pause").on('click', function () {
         $("#player").attr("src", '');
@@ -551,13 +657,13 @@ $(document).ready(function () {
             console.log('app would now close');
         }
     });
-    $('#myFilter').on("focus", function(){
+    $('#myFilter').on("focus", function () {
         $('#footer').removeClass('footerup').addClass('footerdown');
     });
-    $('#myFilter').on("focusout", function(){
+    $('#myFilter').on("focusout", function () {
         $('#footer').removeClass('footerdown').addClass('footerup');
     });
-    $('#myFilter').keyup(function(){
+    $('#myFilter').keyup(function () {
         Select();
     });
     $("#cou, #sty, #lan").change(function () {
@@ -567,78 +673,60 @@ $(document).ready(function () {
     $("#favorits").on('click', function () {
         ShowFavorits(true);
     });
-    // $("#rngVolume").on('input', function () {
-    //     setVolume(this.value);
-    // });
     $("#volume-slider").bind("slider:changed", function (event, data) {
-        // console.log(data.value);
-        setVolume(data.ratio);
-        // setVolume(data.value);
-      
-        // The value as a ratio of the slider (between 0 and 1)
-        // console.log(data.ratio);
-      });    
+        let vol = Math.pow(data.ratio, 3); //better scaling for volume
+        setVolume(vol); // The value as a ratio of the slider (between 0 and 1)
+    });
     $("#thumb-open").on('click', function () {
         // var id = favorits({tit: titplaying}).get()[0].id;
-        $.post("http://www.radio-browser.info/webservice/json/vote/" + idplaying,  //set vote
-        function(results) {
-            var x = (Number($('#inf-votes').text())+1).toString();
-            if(results.ok =='true') { 
-                $('#inf-votes').html(x); //show increased number of votes
-                $("#thumb-open").hide();
-                $("#thumb-closed").show();
-            } else {
-                alert(results.message);
-            }
-            console.log('id msg ok' + ': ' + idplaying +' '+results.message+' '+results.ok);
-        });
+        $.post("http://www.radio-browser.info/webservice/json/vote/" + idplaying, //set vote
+            function (results) {
+                var x = (Number($('#inf-votes').text()) + 1).toString();
+                if (results.ok == 'true') {
+                    $('#inf-votes').html(x); //show increased number of votes
+                    $("#thumb-open").hide();
+                    $("#thumb-closed").show();
+                } else {
+                    alert(results.message);
+                }
+                console.log('id msg ok' + ': ' + idplaying + ' ' + results.message + ' ' + results.ok);
+            });
     });
     $("#thumb-closed").on('click', function () {
         console.log('do nothing');
     });
-    $("#ratingzero").on('click', function () { //small area left of stars to set zero stars
-        $('#setrating').starRating('setRating', 0);
-        updateRating(0);
-        ShowFavorits(false);
-    });
-    $("#ratingzero2").on('click', function () { //small area left of stars to set zero stars
-        $('#setrating2').starRating('setRating', 0);
-        updateRating(0);
-        ShowFavorits(false);
-    });
-    $("#setrating").starRating({ //user can set rating
-        initialRating: 0,
-        disableAfterRate: false,
-        useFullStars: true,
-        starSize: 20,
-        callback: function (rating) {
-            updateRating (rating);
-            ShowFavorits();
-        }
-    });
-    $("#activelist").on('click', 'tr', function() {
-        var id = $(this).attr('id');
+    $("#activelist").on('click', 'tr td:nth-child(2)', function () {
+        var id = $(this).closest('tr').attr('id');
         console.log('id' + ': ' + id);
         SetStation(id);
     });
-    $("#editlist").on('click', 'tr', function() {
-        var tit = xtrastat({tit: $(this).text()}).get()[0].tit;
+    $("#activelist").on('click', 'tr td:nth-child(3)', function () {
+        var id = $(this).closest('tr').attr('id');
+        console.log('id' + ': ' + id);
+        showStation(id);
+    });
+    $("#editlist").on('click', 'tr', function () {
+        var tit = xtrastat({
+            tit: $(this).text()
+        }).get()[0].tit;
         $('#editstationslist').hide();
         EditStation(tit);
     });
     //Check to see if the window is top, if not then display button
-	$(window).scroll(function(){
-		if ($(this).scrollTop() > 100) {
-			$('.scrollToTop').fadeIn();
-		} else {
-			$('.scrollToTop').fadeOut();
-		}
-	});
-	//Click event to scroll to top
-	$('.scrollToTop').click(function(){
-		$('html, body').animate({scrollTop : 0},800);
-		return false;
-	});
+    $(window).scroll(function () {
+        if ($(this).scrollTop() > 100) {
+            $('.scrollToTop').fadeIn();
+        } else {
+            $('.scrollToTop').fadeOut();
+        }
+    });
+    //Click event to scroll to top
+    $('.scrollToTop').click(function () {
+        $('html, body').animate({
+            scrollTop: 0
+        }, 800);
+        return false;
+    });
     $("#makenewstation").on('click', function () {
         w3_close();
         $('#editstation').show();
@@ -647,45 +735,9 @@ $(document).ready(function () {
         $('#btn-deletestation').hide(); //hide button delete
         $("#titleeditform").text(_lg.Makenewstation);
     });
-    $(".infothisstation").on('click', function(){
+    $(".infothisstation").on('click', function () {
         w3_close();
-        $.post("http://www.radio-browser.info/webservice/json/stations/byid/" + idplaying,  //get playing station
-        function(results) {
-            if(results[0] !== undefined){ //sometimes radiobrowser has no info on station
-                $("#thumb-open").show();
-                $("#thumb-closed").hide();
-                var rs = results[0];
-                if(rs.favicon){
-                    $("#favicon2").addClass("favicon2");
-                    $('.favicon2').css({"background-image":"url(" + rs.favicon + ")", "display":"block"})
-                }
-                $('.titplaying').html(titplaying);
-                $('#inf-urlplaying').html(urlplaying);
-                $("#inf-homeurl").attr("href", rs.homepage);
-                $("#inf-homeurl").html(rs.homepage);
-                $("#inf-country").html(rs.country);
-                $("#inf-state").html(rs.state);
-                $("#inf-tags").html(rs.tags);
-                $("#inf-language").html(rs.language);
-                $("#inf-codec").html(rs.codec);
-                $("#inf-bitrate").html(rs.bitrate + '&nbsp;kb/s');
-                $('#inf-votes').html(rs.votes);
-                $("#setrating2").starRating({ //user can set rating
-                    initialRating: 0,
-                    disableAfterRate: false,
-                    useFullStars: true,
-                    starSize: 20,
-                    callback: function (rating) {
-                        updateRating(rating);
-                    }
-                });
-                var r = (favorits({tit:titplaying}).count()>0) ? favorits({tit:titplaying}).get()[0].rat : 0;
-                $('#setrating2').starRating('setRating', r, true);
-                $("#infoplayingstation").show();
-            } else {
-                alert(_lg.noinfo);
-            }
-        });
+        showStation(idplaying);
     });
     $(".goabout").on('click', function () {
         w3_close();
@@ -696,14 +748,14 @@ $(document).ready(function () {
         var msg = "<p>" + _lg.msg01 + "</p>";
         msg += "<p><a href='https://radios2s.scriptel.nl' target='_blank'>radios2s.scriptel.nl</a></p>";
         msg += "<p>" + version + "</p><p>Copyright &copy; " + yyyy + ", Scriptel</p><hr/>";
-        msg += "<p>"+ _lg.msg02 + "<a href='http://www.radio-browser.info/' target='_blank'>Radio Browser</a>";
+        msg += "<p>" + _lg.msg02 + "<a href='http://www.radio-browser.info/' target='_blank'>Radio Browser</a>";
         msg += _lg.msg03 + "</p><hr/>";
         msg += "<p class='italic'>" + _lg.msg04 + "</p>";
-        msg +="<p class='italic'>" + _lg.msg05 + "</p>";
+        msg += "<p class='italic'>" + _lg.msg05 + "</p>";
         $("#logo").show();
-        showMessage(hd,msg);
+        showMessage(hd, msg);
     });
-    $("#logo").on('click', function(){
+    $("#logo").on('click', function () {
         window.location.href = 'https://radios2s.scriptel.nl';
     });
     $("#goeditstations").on('click', function () {
@@ -732,8 +784,12 @@ $(document).ready(function () {
     });
     $('#btn-deletestation').on('click', function () { //save or update new or edited station
         var itit = $("#itit").val();
-        if (xtrastat({tit:itit}).count() > 0) {
-            xtrastat({tit:itit}).remove();
+        if (xtrastat({
+                tit: itit
+            }).count() > 0) {
+            xtrastat({
+                tit: itit
+            }).remove();
             // stationsnew({name:itit}).remove();
         }
         $('#editstation').hide();
@@ -797,30 +853,34 @@ $(document).ready(function () {
         } else if (!UrlCheck(stationrb.url)) {
             alert("Enter correct url");
         } else {
-            if (xtrastat({tit:stationrb.name}).count() > 0){ //station exists in xtrastat
-                var id = xtrastat({tit: stationrb.name}).get()[0].id;
+            if (xtrastat({
+                    tit: stationrb.name
+                }).count() > 0) { //station exists in xtrastat
+                var id = xtrastat({
+                    tit: stationrb.name
+                }).get()[0].id;
                 $.post("http://www.radio-browser.info/webservice/json/edit/" + id, stationrb,
-                function(results){
-                    if(results.ok == 'true'){
-                        alert(results.message);
-                        stationrb.id = results.id;
-                        updateLocal(stationxtr);
-                    } else {
-                        alert(results.message);
-                    }
-                });
+                    function (results) {
+                        if (results.ok == 'true') {
+                            alert(results.message);
+                            stationrb.id = results.id;
+                            updateLocal(stationxtr);
+                        } else {
+                            alert(results.message);
+                        }
+                    });
             } else { //new station
-                $.post("http://www.radio-browser.info/webservice/json/add", stationrb, 
-                function(results) {
-                    if(results.ok == 'true'){
-                        alert(results.message);
-                        stationrb.id = results.id;
-                        stationrb.stream_check_bitrate = results.stream_check_bitrate;
-                        updateLocal(stationxtr);
-                    } else {
-                        alert(results.message);
-                    }
-                });
+                $.post("http://www.radio-browser.info/webservice/json/add", stationrb,
+                    function (results) {
+                        if (results.ok == 'true') {
+                            alert(results.message);
+                            stationrb.id = results.id;
+                            stationrb.stream_check_bitrate = results.stream_check_bitrate;
+                            updateLocal(stationxtr);
+                        } else {
+                            alert(results.message);
+                        }
+                    });
             }
             $('#editstation').hide();
         }
@@ -831,8 +891,8 @@ function detectLanguage() {
     if (navigator.globalization !== null && navigator.globalization !== undefined) { //Phonegap browser detection
         navigator.globalization.getPreferredLanguage(
             function (language) {
-                if (lg_device != language.value.slice(0,2)){
-                    lg_device = language.value.slice(0,2);
+                if (lg_device != language.value.slice(0, 2)) {
+                    lg_device = language.value.slice(0, 2);
                     // alert('new language: '+lg_device);
                     showHtml();
                     FillSelectOptions();
@@ -842,11 +902,11 @@ function detectLanguage() {
             function (error) {
                 // alert('error');
             }
-        );    
+        );
     } else { //Normal browser detection
         if (window.navigator.language !== null && window.navigator.language !== undefined) {
-            if (lg_device != window.navigator.language.slice(0,2)){
-                lg_device = window.navigator.language.slice(0,2);
+            if (lg_device != window.navigator.language.slice(0, 2)) {
+                lg_device = window.navigator.language.slice(0, 2);
                 showHtml();
                 FillSelectOptions();
             }
@@ -855,18 +915,18 @@ function detectLanguage() {
     localStorage.setItem("lgdevice", lg_device);
 }
 
-function showHtml(){
+function showHtml() {
     $("#play").hide();
     $("#pause").show();
-    $("#close-sidebar").html(_lg.Close+"&nbsp;&times;");
+    $("#close-sidebar").html(_lg.Close + "&nbsp;&times;");
     $("#makenewstation").html(_lg.Makenewstation);
     $("#goeditstations").html(_lg.EditStation);
     $("#closeapp").html(_lg.closeapp);
-    $("#playingstation").html(_lg.Playingstation);
+    // $("#playingstation").html(_lg.Playingstation);
     $("#initcast").html(_lg.initcast);
     $("#goabout").html(_lg.About1);
     $("#favorits").html(_lg.Favorits);
-    $("#playingstat").html(_lg.Playingstation);
+    // $("#playingstat").html(_lg.Playingstation);
     $("#lb-homeurl").html(_lg.homeurl);
     $("#lb-country").html(_lg.Country);
     $("#lb-state").html(_lg.State);
@@ -890,26 +950,42 @@ function showHtml(){
     $("#myFilter").attr("placeholder", _lg.Searchfor)
 }
 
-function updateRating(rating) { //update rating of playing station
-    if( rating > 0){ 
-        if (favorits({tit:titplaying}).count()>0){ //update of rating
-            favorits({tit:titplaying}).update({rat:rating});
-            console.log("updated rating",titplaying, rating);
+function updateRating(rating, id, tit) { //update rating of playing station
+    if (rating > 0) {
+        if (favorits({
+                id: id
+            }).count() > 0) { //update of rating
+            favorits({
+                id: id
+            }).update({
+                rat: rating
+            });
+            console.log("updated rating", id, rating);
         } else { //new rating
-            favorits.insert({id: idplaying, tit: titplaying, rat:rating});
+            favorits.insert({
+                id: id,
+                tit: tit,
+                rat: rating
+            });
         }
         $('.ratingzero').html('X');
     } else { //no longer favorit
-        favorits({tit:titplaying}).remove();
+        favorits({
+            id: id
+        }).remove();
         $('.ratingzero').html('');
     }
     ShowFavorits(false);
 }
 
 function updateLocal(xtr) { //strb = station on format radiobrowser.info
-    if (xtrastat({tit:xtr.tit}).count() > 0){ //station exists in xtrastat
-        xtrastat({tit:xtr.tit}).update(xtr);
-    }else{ //new station
+    if (xtrastat({
+            tit: xtr.tit
+        }).count() > 0) { //station exists in xtrastat
+        xtrastat({
+            tit: xtr.tit
+        }).update(xtr);
+    } else { //new station
         xtrastat.insert(xtr);
     }
 }
