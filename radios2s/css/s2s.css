@@ -291,7 +291,7 @@ table td {
     overflow-wrap: break-word;     /* Renamed property in CSS3 draft spec */
 }
 
-table#activelist td {
+table#activelist td, table#editlist td {
     cursor: pointer;
 }
 
@@ -321,7 +321,7 @@ tr:active {
 }
 
 .label-small {
-    font-size: 0.8em;
+    font-size: 0.65em;
 }
 
 img{

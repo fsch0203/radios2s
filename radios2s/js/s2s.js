@@ -1,11 +1,22 @@
 var version = "Version 0.3.3";
-var xtrastat = TAFFY(); //stations added by user
-var favorits = TAFFY(); //stations marked as favorit (with rating)
-var lim = 200;
-var start = 0; //start record in query
-favorits.store("favorits"); //synchronize database in localstorage with name "favorits"
-// console.log('fav#'+': '+favorits().count());
-xtrastat.store("xtrastat"); //synchronize database in localstorage with name "xtrastat"
+_settings = JSON.parse(localStorage.getItem('settings'));
+if (_settings) {
+    //..
+} else {
+    _settings = { //global variables that are stored in localstorage
+        screenx: 1300, //position window
+        screeny: 100,
+        screenw: 600,
+        screenh: 900,
+        maxfavorits: 100,
+        laststation: 0,
+        lastvolume: 0.1,
+        language: "en"
+    };
+    localStorage.setItem('settings', JSON.stringify(_settings));
+}
+var queryLimit = 200;
+var queryStart = 0; //start record in query
 var player;
 var castconnected = "unavailable";
 var urlplaying;
@@ -17,10 +28,6 @@ var thisdevice = {
 };
 var lgnr; //us:0, nl:1
 var _lg;
-var lg_device = window.navigator.language.slice(0, 2);
-lg_device = (lg_device) ? lg_device : "us";
-setLanguage();
-
 var run_as = 'web'; //run as web-application (default: web), as chrome-extension (ext), as chrome-app (app) or as NodeWebkit-app (kit)
 try {
     var manifest = chrome.runtime.getManifest(); //OK for ext
@@ -31,26 +38,28 @@ try {
 }
 console.log('run_as' + ': ' + run_as);
 
-function setLanguage() {
-    var lg = localStorage.getItem("lgdevice"); //only relevant for android; in web/chrome lgdevice is not stored
-    lg_device = (lg) ? lg : lg_device;
-    // lg_device = 'us';
-    switch (lg_device) {
-        case 'nl':
-            lgnr = 1; //us:0, nl:1
-            _lg = translate.nl;
-            break;
-        case 'de':
-            lgnr = 2; //us:0, nl:1
-            _lg = translate.de;
-            break;
-        default:
-            lgnr = 0; //us:0, nl:1
-            _lg = translate.us;
-            break;
+function init() {
+    player = document.getElementById('player');
+    detectLanguage();
+    FillSelectOptions();
+    showHtml();
+    ShowFavorits(true); //shows favorites, if no favorites yet then Select(); in Select() you get stations db
+    _settings = JSON.parse(localStorage.getItem("settings"));
+    if (typeof _settings.laststation === 'undefined') {
+        _settings.laststation = 0;
+    } else {
+        SetStation(_settings.laststation);
     }
+    if (typeof _settings.lastvolume === 'undefined') {
+        _settings.lastvolume = 0.1;
+    }
+    localStorage.setItem('settings', JSON.stringify(_settings));
+    var vol = _settings.lastvolume;
+    // console.log(`volume: ${vol}`);
+    setVolume(vol);
+    vol = Math.pow(vol, 1 / 3);
+    $("#volume-slider").simpleSlider("setValue", vol);
 }
-// console.log('lg_device' + ': ' + lg_device);
 
 var app = {
     testing_on_desktop: true,
@@ -108,23 +117,6 @@ var app = {
         document.getElementsByTagName("head")[0].appendChild(script);
     }
 };
-
-function init() {
-    player = document.getElementById('player');
-    FillSelectOptions();
-    showHtml();
-    ShowFavorits(true); //shows favorites, if no favorites yet then Select(); in Select() you get stations db
-    var last = localStorage.getItem("laststation"); //id of last station
-    if (last) {
-        SetStation(last);
-    }
-    var vol = localStorage.getItem("lastvolume");
-    if (vol) {
-        setVolume(vol);
-        vol = Math.pow(vol, 1 / 3);
-        $("#volume-slider").simpleSlider("setValue", vol);
-    }
-}
 
 function w3_open() { //sidebar open, overlay for dark background
     $("#mySidebar").show();
@@ -237,11 +229,11 @@ setInterval(function () { //check scroll every 250ms
 function hasScrolled() {
     var navbarHeight = $('header').outerHeight();
     var st = $(this).scrollTop();
-    start = (st === 0) ? 0 : start; //reset start if on top
+    queryStart = (st === 0) ? 0 : queryStart; //reset start if on top
     var sh = $('body').outerHeight(); //scroll height
     var p = st / sh;
-    if (p > 0.9) { // almost at bottum: get new records
-        start += 1;
+    if (p > 0.9) { // almost at bottom: get new records
+        queryStart += 1;
         Select();
     }
     if (Math.abs(lastScrollTop - st) <= delta)
@@ -256,7 +248,9 @@ function hasScrolled() {
 
 function setVolume(volume) {
     player.volume = volume;
-    localStorage.setItem("lastvolume", volume);
+    _settings.lastvolume = volume;
+    localStorage.setItem('settings', JSON.stringify(_settings));
+    // localStorage.setItem("lastvolume", volume);
 }
 
 function SetStation(id) {
@@ -278,21 +272,18 @@ function SetStation(id) {
                         }
                         titplaying = results[0].name;
                         idplaying = id;
-                        localStorage.setItem("laststation", id);
+                        _settings.laststation = id;
+                        localStorage.setItem('settings', JSON.stringify(_settings));
+                        // localStorage.setItem("laststation", id);
                         var btr = results[0].bitrate; //bitrate
                         $("#selectedstation").html(titplaying + " - " + btr + " kbps");
-                        if (favorits({
-                                tit: titplaying
-                            }).count() > 0) { //show if selected station is favorit
-                            var r = favorits({
-                                tit: titplaying
-                            }).get()[0].rat;
-                            $('#rateitfooter').rateit('value', r)
-                            $('.ratingzero').html('X');
-                        } else { //no favorit
-                            $('#rateitfooter').rateit('value', 0)
-                            $('.ratingzero').html('');
+                        var stations = JSON.parse(localStorage.getItem('stations'));
+                        let rating = 0;
+                        if (stations) { //if station already rated
+                            objIndex = stations.findIndex((obj => obj.tit == titplaying));
+                            rating = (objIndex > -1) ? stations[objIndex].rat : 0;
                         }
+                        $('#rateitfooter').rateit('value', rating)
                         console.log('urlplaying id' + ': ' + urlplaying + ' ' + id);
                         $("#player").attr("src", urlplaying);
                         var x1 = jQuery.trim(urlplaying).substring(0, 42).trim(this);
@@ -300,6 +291,7 @@ function SetStation(id) {
                         $(".url").html(x1);
                         var pl = document.getElementById('play');
                         pl.click(); //activate CastVideo.js
+                        updateRating(rating, id, titplaying);
                         $.get("https://ipinfo.io", function (ipinfo) {
                             // ipaddress = ipinfo.ip;
                             $.post("https://radios2s.scriptel.nl/sure/savestation03.php", {
@@ -320,30 +312,33 @@ function SetStation(id) {
                         }, "jsonp");
                     });
             } else {
-                alert("Sorry, \nradio station is not availlable");
+                // alert("Sorry, \nradio station is not availlable");
             }
         });
 }
 
 function EditStation(tit) {
-    var rs = xtrastat({
-        tit: tit
-    }).get()[0];
-    document.getElementById('editstation').style.display = 'block';
-    $("#itit").val(tit);
-    $("#icou").val(rs.cou);
-    $("#isty").val(rs.sty);
-    $("#ilan").val(rs.lan);
-    $("#iu1").val(rs.u1);
-    $("#ihom").val(rs.hom);
-    $("#ista").val(rs.sta);
-    $("#ifav").val(rs.fav);
+    var xtrastations = JSON.parse(localStorage.getItem('xtrastations'));
+    if (!(xtrastations)) xtrastations = [];
+    objIndex = xtrastations.findIndex((obj => obj.tit == tit));
+    if (objIndex > -1) {
+        rs = xtrastations[objIndex];
+        document.getElementById('editstation').style.display = 'block';
+        $("#itit").val(tit);
+        $("#icou").val(rs.cou);
+        $("#isty").val(rs.sty);
+        $("#ilan").val(rs.lan);
+        $("#iu1").val(rs.u1);
+        $("#ihom").val(rs.hom);
+        $("#ista").val(rs.sta);
+        $("#ifav").val(rs.fav);
+    }
 }
 
 function Select() {
     var sel;
-    var st = start * lim;
-    // console.log('st start lim;' + ': ' + st +' '+ start +' '+ lim);
+    var st = queryStart * queryLimit;
+    // console.log('st queryStart queryLimit;' + ': ' + st +' '+ queryStart +' '+ queryLimit);
     var cou_nr = $("#cou").val(); //index of selected country
     var sty_nr = $("#sty").val(); //index of selected style
     var lan_nr = $("#lan").val(); //index of selected language
@@ -357,7 +352,7 @@ function Select() {
         tag: sty,
         language: lan,
         offset: st,
-        limit: lim
+        limit: queryLimit
     };
     $.post("http://www.radio-browser.info/webservice/json/stations/search", param, //get stations
         function (results) {
@@ -371,7 +366,7 @@ function Select() {
             </tr>`;
                 // n += 1;
             }
-            if (start === 0) {
+            if (queryStart === 0) {
                 $('#activelist').html(list);
             } else {
                 $('#activelist').append(list);
@@ -441,36 +436,22 @@ function storeSelection(elem, str) {
 function ShowFavorits(warning) { //if warning is true: message if there are no favorits (at start and if user clicks favorits button)
     var x;
     var list = '';
-    // clear option boxes and search field
-    // var r = (favorits({tit:titplaying}).count()>0) ? favorits({tit:titplaying}).get()[0].rat : 0;
-    // $('#setrating').starRating('setRating', r, true);
     $("#cou, #sty, #lan").val('').prop('selected', true);
     $("#myFilter").val('');
     $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');
-    if (favorits().count() > 0) {
-        for (var i = 5; i > 0; i--) {
-            x = favorits({
-                rat: i
-            }).order('tit').limit(lim).get();
-            if (x.length > 0) {
-                if (i === 1) {
-                    // list += '<tr><th></th><th><div class="stars" id="stars'+ i + '"></div>'  +' </th><th></th></tr>';
-                } else {
-                    // list += '<tr><th></th><th><div class="stars" id="stars'+ i + '"></div>'  +' </th><th></th></tr>';
-                    // list += '<tr><th><div  class="stars" id="stars'+ i + '"></div>'  + '</th></tr>';
-                }
-            }
-            for (var n = 0; n < x.length; n++) {
-                // list += "<tr id=" + x[n].id + "><td>" + x[n].tit + "</td></tr>";
-                list += `<tr id=${x[n].id}><td class="td-left"></td><td class="td-center">
-                    <span class="label-small">
-                    <img src="./res/img/${i}star.png" width="60">
-                    </span><br>
-                    <span>${x[n].tit}</span></td>
-                    <td class="td-right"><span class="edit-icon"><img src="./res/img/info-128x128.png" width="30"></span></td>
-                    </tr>`;
-            }
-        }
+    var stations = JSON.parse(localStorage.getItem('stations'));
+    if (stations) {
+        stations = stations.sort(fieldSorter(['-rat', '-date']));
+        stations.forEach((station) => {
+            // console.log(`${new Date(station.date).toLocaleString()}`);
+            list += `<tr id=${station.id}><td class="td-left"></td><td class="td-center">
+            <span class="label-small">
+            <img src="./res/img/${station.rat}star.png" width="60">
+            </span><span class="label-small" style="float:right">${date2LocalString(station.date)}</span><br>
+            <span>${station.tit}</span></td>
+            <td class="td-right"><span class="edit-icon"><img src="./res/img/info-128x128.png" width="30"></span></td>
+            </tr>`;
+        });
         $('#activelist').html(list);
     } else if (warning) { //no favorits yet
         var msg = "<h4>" + _lg.wrn02 + "</h4>";
@@ -485,6 +466,18 @@ function ShowFavorits(warning) { //if warning is true: message if there are no f
         $("#popup01").hide();
         Select();
     }
+}
+
+function date2LocalString(date) {
+    var dd = new Date(date);
+    dd = dd.toLocaleString(_settings.language, {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+    return dd;
 }
 
 function UrlCheck(url) {
@@ -592,11 +585,9 @@ function showStation(id) {
                 $("#inf-codec").html(rs.codec);
                 $("#inf-bitrate").html(rs.bitrate + '&nbsp;kb/s');
                 $('#inf-votes').html(rs.votes);
-                var r = (favorits({
-                    id: id
-                }).count() > 0) ? favorits({
-                    id: id
-                }).get()[0].rat : 0;
+                var stations = JSON.parse(localStorage.getItem('stations'));
+                objIndex = stations.findIndex((obj => obj.id == id));
+                var r = (objIndex>-1) ? stations[objIndex].rat : 0;
                 console.log(`${r}`);
                 $('#rateitinfo').rateit('value', r);
                 $('#rateitinfo').closest('tr').attr('id', id);
@@ -604,9 +595,14 @@ function showStation(id) {
                 $("#infoplayingstation").show();
             } else {
                 alert(_lg.noinfo);
-                favorits({
-                    id: id
-                }).remove();
+                var stations = JSON.parse(localStorage.getItem('stations'));
+                objIndex = stations.findIndex((obj => obj.id == id));
+                if (objIndex>-1) {
+                    stations.splice(objIndex, 1);
+                }
+                // favorits({
+                //     id: id
+                // }).remove();
                 ShowFavorits(false);
             }
         });
@@ -619,7 +615,7 @@ $(document).ready(function () {
     $('#rateitinfo').bind('rated', function (e, rating) {
         var id = $(this).closest('tr').attr('id');
         var name = $(this).closest('tr').attr('name');
-        console.log(`updateRating: ${rating} ${id} ${name}`);
+        // console.log(`updateRating: ${rating} ${id} ${name}`);
         updateRating(rating, id, name);
     });
     $("#rateitinfo").bind('reset', function () {
@@ -647,7 +643,7 @@ $(document).ready(function () {
         $("#pause").show();
     });
     $("#closeapp").on('click', function () {
-        detectLanguage(); //next time the right language setting will apply (if setting has changed)
+        // detectLanguage(); //next time the right language setting will apply (if setting has changed)
         if (navigator.app) { //closing is necessary if user wants to apply new language settings (if changed)
             navigator.app.exitApp();
         } else if (navigator.device) {
@@ -667,7 +663,7 @@ $(document).ready(function () {
         Select();
     });
     $("#cou, #sty, #lan").change(function () {
-        start = 0;
+        queryStart = 0;
         Select();
     });
     $("#favorits").on('click', function () {
@@ -706,11 +702,15 @@ $(document).ready(function () {
         showStation(id);
     });
     $("#editlist").on('click', 'tr', function () {
-        var tit = xtrastat({
-            tit: $(this).text()
-        }).get()[0].tit;
-        $('#editstationslist').hide();
-        EditStation(tit);
+        var xtrastations = JSON.parse(localStorage.getItem('xtrastations'));
+        if (!(xtrastations)) xtrastations = [];
+        console.log(`${$(this).text()}`);
+        objIndex = xtrastations.findIndex((obj => obj.tit == $(this).text()));
+        if (objIndex > -1) {
+            var tit = xtrastations[objIndex].tit;
+            $('#editstationslist').hide();
+            EditStation(tit);
+        }
     });
     //Check to see if the window is top, if not then display button
     $(window).scroll(function () {
@@ -764,13 +764,16 @@ $(document).ready(function () {
         $('#btn-newstation').show();
         $('#btn-deletestation').show();
         $("#titleeditform").text('Edit station');
-        var sel = xtrastat().get();
+        var sel = JSON.parse(localStorage.getItem('xtrastations'));
+        if (!(sel)) sel = [];
+        // var sel = xtrastat().get();
         var list = '';
         if (sel.length === 0) {
             list += "<td>" + _lg.nothingtoedit + "</td>";
         } else {
             for (var n = 0; n < sel.length; n++) {
-                list += "<tr><td>" + sel[n].tit + "</td></tr>";
+                // list += "<tr><td>" + sel[n].tit + "</td></tr>";
+                list += `<tr><td><span class="label-small"></span><br><span>${sel[n].tit}</span></td></tr>`;
             }
         }
         $('#editlist').html(list);
@@ -784,21 +787,20 @@ $(document).ready(function () {
     });
     $('#btn-deletestation').on('click', function () { //save or update new or edited station
         var itit = $("#itit").val();
-        if (xtrastat({
-                tit: itit
-            }).count() > 0) {
-            xtrastat({
-                tit: itit
-            }).remove();
-            // stationsnew({name:itit}).remove();
+        var xtrastations = JSON.parse(localStorage.getItem('xtrastations'));
+        objIndex = xtrastations.findIndex((obj => obj.tit == itit));
+        if (objIndex > -1) {
+            xtrastations = xtrastations.splice(objIndex, 1);
         }
         $('#editstation').hide();
         $('#editstationslist').show();
-        var sel = xtrastat().get();
+        // var sel = xtrastat().get();
         var list = '';
-        for (var n = 0; n < sel.length; n++) {
-            list += "<tr><td>" + sel[n].tit + "</td></tr>";
-        }
+        xtrastations.forEach((xtrastation) => {
+        // for (var n = 0; n < xtrastations.length; n++) {
+            list += `<tr><td><span class="label-small"></span><br><span>${xtrastation.tit}</span></td></tr>`;
+        });
+        localStorage.setItem('xtrastations', JSON.stringify(xtrastations));
         $('#editlist').html(list);
     });
     $('#cancelstation').on('click', function () { //cancel edit station form
@@ -853,18 +855,17 @@ $(document).ready(function () {
         } else if (!UrlCheck(stationrb.url)) {
             alert("Enter correct url");
         } else {
-            if (xtrastat({
-                    tit: stationrb.name
-                }).count() > 0) { //station exists in xtrastat
-                var id = xtrastat({
-                    tit: stationrb.name
-                }).get()[0].id;
+            var xtrastations = JSON.parse(localStorage.getItem('xtrastations'));
+            if (!(xtrastations)) xtrastations = [];
+            objIndex = xtrastations.findIndex((obj => obj.tit == stationrb.name));
+            if (objIndex > -1) { //station exists in xtrastations
+                id = xtrastations[objIndex].id;
                 $.post("http://www.radio-browser.info/webservice/json/edit/" + id, stationrb,
                     function (results) {
                         if (results.ok == 'true') {
-                            alert(results.message);
                             stationrb.id = results.id;
                             updateLocal(stationxtr);
+                            alert(results.message);
                         } else {
                             alert(results.message);
                         }
@@ -873,10 +874,10 @@ $(document).ready(function () {
                 $.post("http://www.radio-browser.info/webservice/json/add", stationrb,
                     function (results) {
                         if (results.ok == 'true') {
-                            alert(results.message);
                             stationrb.id = results.id;
                             stationrb.stream_check_bitrate = results.stream_check_bitrate;
                             updateLocal(stationxtr);
+                            alert(results.message);
                         } else {
                             alert(results.message);
                         }
@@ -888,31 +889,38 @@ $(document).ready(function () {
 });
 
 function detectLanguage() {
+    var lang = 'en';
     if (navigator.globalization !== null && navigator.globalization !== undefined) { //Phonegap browser detection
         navigator.globalization.getPreferredLanguage(
             function (language) {
-                if (lg_device != language.value.slice(0, 2)) {
-                    lg_device = language.value.slice(0, 2);
-                    // alert('new language: '+lg_device);
-                    showHtml();
-                    FillSelectOptions();
-                }
+                lang = language.value.slice(0, 2);
                 console.log('navigator.globalization language.value' + ': ' + language.value);
             },
             function (error) {
-                // alert('error');
+                console.log('error');
             }
         );
     } else { //Normal browser detection
         if (window.navigator.language !== null && window.navigator.language !== undefined) {
-            if (lg_device != window.navigator.language.slice(0, 2)) {
-                lg_device = window.navigator.language.slice(0, 2);
-                showHtml();
-                FillSelectOptions();
-            }
+            lang = window.navigator.language.slice(0, 2);
         }
     }
-    localStorage.setItem("lgdevice", lg_device);
+    _settings.language = lang;
+    localStorage.setItem('settings', JSON.stringify(_settings));
+    switch (lang) {
+        case 'nl':
+            lgnr = 1; //us:0, nl:1
+            _lg = translate.nl;
+            break;
+        case 'de':
+            lgnr = 2; //us:0, nl:1
+            _lg = translate.de;
+            break;
+        default:
+            lgnr = 0; //us:0, nl:1
+            _lg = translate.us;
+            break;
+    }
 }
 
 function showHtml() {
@@ -922,7 +930,7 @@ function showHtml() {
     $("#makenewstation").html(_lg.Makenewstation);
     $("#goeditstations").html(_lg.EditStation);
     $("#closeapp").html(_lg.closeapp);
-    // $("#playingstation").html(_lg.Playingstation);
+    $("#playingstation").html(_lg.Playingstation);
     $("#initcast").html(_lg.initcast);
     $("#goabout").html(_lg.About1);
     $("#favorits").html(_lg.Favorits);
@@ -950,42 +958,56 @@ function showHtml() {
     $("#myFilter").attr("placeholder", _lg.Searchfor)
 }
 
-function updateRating(rating, id, tit) { //update rating of playing station
-    if (rating > 0) {
-        if (favorits({
-                id: id
-            }).count() > 0) { //update of rating
-            favorits({
-                id: id
-            }).update({
-                rat: rating
-            });
-            console.log("updated rating", id, rating);
-        } else { //new rating
-            favorits.insert({
-                id: id,
-                tit: tit,
-                rat: rating
-            });
-        }
-        $('.ratingzero').html('X');
-    } else { //no longer favorit
-        favorits({
-            id: id
-        }).remove();
-        $('.ratingzero').html('');
+const fieldSorter = (fields) => (a, b) => fields.map(o => { //sorts array of objects
+    // e.g.: const sortedHomes = homes.sort(fieldSorter(['state', '-price'])); see t.ly/JgRb2
+    let dir = 1;
+    if (o[0] === '-') {
+        dir = -1;
+        o = o.substring(1);
     }
+    return a[o] > b[o] ? dir : a[o] < b[o] ? -(dir) : 0;
+}).reduce((p, n) => p ? p : n, 0);
+
+function updateRating(rating, id, tit) { //update rating of playing station
+    const date = new Date().toISOString();
+    let station = {
+        id: id,
+        tit: tit,
+        rat: rating,
+        date: date
+    };
+    var stations = JSON.parse(localStorage.getItem('stations'));
+    if (stations) {
+        objIndex = stations.findIndex((obj => obj.id == id));
+        if (objIndex > -1) {
+            stations[objIndex] = station;
+            console.log(`updated rating ${id} ${tit} ${rating} ${date}`);
+        } else {
+            stations.push(station);
+            console.log(`new station ${id} ${tit} ${rating} ${date}`);
+        }
+    } else {
+        stations = [];
+        stations.push(station);
+        console.log(`new db, new station ${id} ${tit} ${rating} ${date}`);
+    }
+    stations = stations.sort(fieldSorter(['-rat', '-date']));
+    if (stations.length > _settings.maxstations) {
+        stations.length = _settings.maxstations;
+    }
+    console.log(`${JSON.stringify(stations, null, '\t')}`);
+    localStorage.setItem('stations', JSON.stringify(stations));
     ShowFavorits(false);
 }
 
 function updateLocal(xtr) { //strb = station on format radiobrowser.info
-    if (xtrastat({
-            tit: xtr.tit
-        }).count() > 0) { //station exists in xtrastat
-        xtrastat({
-            tit: xtr.tit
-        }).update(xtr);
+    var xtrastations = JSON.parse(localStorage.getItem('xtrastations'));
+    if (!(xtrastations)) xtrastations = [];
+    objIndex = xtrastations.findIndex((obj => obj.tit == xtr.tit));
+    if (objIndex > -1) {
+        xtrastations[objIndex] = xtr;
     } else { //new station
-        xtrastat.insert(xtr);
+        xtrastations.push(xtr);
     }
+    localStorage.setItem('xtrastations', JSON.stringify(xtrastations));
 }

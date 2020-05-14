@@ -23,8 +23,10 @@ Based on config.xml the android apk is build in build.phonegap.com. The chrome e
 #### Version 1.1.0
 - Improved scaling of volume slider
 - Small changes in layout
-- Option added to show information of non-playing station
+- Added date field in favorits list
+- Option added to show and edit information of non-playing station
 - Skipped storage permission
+- History of listened stations visible in favorits list
 
 #### Version 1.0.0
 - First stable version
