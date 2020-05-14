@@ -1,3 +1,13 @@
+::-webkit-scrollbar {
+    width: 0px;
+}
+
+  #centralpart{
+    padding: 6.32em 0em 8em 0em;
+    overflow: auto;
+    /* margin-top: 40px; */
+}
+
 .menubar-item {
     flex: 1 1 0px;
     /* padding-left: 5px;
@@ -80,10 +90,6 @@
 
 #stars1 {
     background-image:url('../res/img/1star.png');
-}
-
-#centralpart{
-    padding: 6.32em 0em 8em 0em;
 }
 
 .thumbopen{
@@ -310,6 +316,7 @@ table td {
 
 table#activelist td, table#editlist td {
     cursor: pointer;
+    padding: 0px 8px 8px 8px;
 }
 
 tr:active {

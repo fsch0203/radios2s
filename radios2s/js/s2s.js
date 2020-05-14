@@ -6,8 +6,8 @@ if (_settings) {
     _settings = { //global variables that are stored in localstorage
         screenx: 1300, //position window
         screeny: 100,
-        screenw: 600,
-        screenh: 900,
+        screenw: 474,
+        screenh: 720,
         maxfavorits: 100,
         laststation: 0,
         lastvolume: 0.1,
@@ -221,6 +221,7 @@ $(window).scroll(function (event) {
     didScroll = true;
 });
 setInterval(function () { //check scroll every 250ms
+    saveWindowPosition();
     if (didScroll) {
         hasScrolled();
         didScroll = false;
@@ -246,6 +247,19 @@ function hasScrolled() {
     }
     lastScrollTop = st;
 } // END: hide header when scrolling down
+
+function setWindow() {
+    window.moveTo(_settings.screenx, _settings.screeny);
+    self.resizeTo(_settings.screenw, _settings.screenh);
+}
+
+function saveWindowPosition() { //activated after redrawweblinks or hasscrolled
+    _settings.screenx = window.screenX; //position is saved after every calculation
+    _settings.screeny = window.screenY;
+    _settings.screenw = window.outerWidth;
+    _settings.screenh = window.outerHeight;
+    localStorage.setItem('settings', JSON.stringify(_settings));
+}
 
 function setVolume(volume) {
     player.volume = volume;
@@ -614,6 +628,7 @@ function showStation(id) {
 }
 
 $(document).ready(function () {
+    setWindow();
     swipe();
     init();
     app.initialize();

@@ -28,6 +28,7 @@ Based on config.xml the android apk is build in build.phonegap.com. The chrome e
 - Skipped storage permission
 - History of listened stations visible in favorits list
 - Added option to sort favorits
+- Save position and size of window
 
 #### Version 1.0.0
 - First stable version
