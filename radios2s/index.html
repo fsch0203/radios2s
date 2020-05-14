@@ -51,17 +51,19 @@
         </div>
         <div class="w3-display-topright casticon connected" id="casticonactive"></div>
         <div class="w3-display-topright casticon notconnected" id="casticonidle"></div>
-        <div class="w3-cell-row">
-            <div class="w3-container fs-black w3-cell w3-cell-middle" style="width:33.4%" id="cont-cou">
-                <select class="w3-select w3-border-0 fs-black country" name="country" id="cou">
+        <div class="w3-cell-row menubar w3-black">
+            <a href="#" title="Sort on rating" class="ratingselect" id="ratingselect">
+                <img id="ratingselectimg" src="./res/img/star-full.png" width="24"></a>
+            <div class="w3-container w3-cell w3-cell-middle menubar-item" id="cont-cou">
+                <select class="w3-select w3-border-0 country" name="country" id="cou">
                 </select>
             </div>
-            <div class="w3-container fs-black w3-cell w3-cell-middle" style="width:33.4%" id="cont-sty">
-                <select class="w3-select w3-border-0 fs-black style" name="style" id="sty">
+            <div class="w3-container w3-cell w3-cell-middle menubar-item" id="cont-sty">
+                <select class="w3-select w3-border-0 style" name="style" id="sty">
                 </select>
             </div>
-            <div class="w3-container fs-black w3-cell w3-cell-middle" id="cont-lan">
-                <select class="w3-select w3-border-0 fs-black language" name="language" id="lan">
+            <div class="w3-container w3-cell w3-cell-middle menubar-item" id="cont-lan">
+                <select class="w3-select w3-border-0 language" name="language" id="lan">
                 </select>
             </div>
         </div>

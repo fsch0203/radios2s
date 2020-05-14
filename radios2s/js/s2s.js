@@ -11,7 +11,8 @@ if (_settings) {
         maxfavorits: 100,
         laststation: 0,
         lastvolume: 0.1,
-        language: "en"
+        language: "en",
+        listorder: 'stars-updated'
     };
     localStorage.setItem('settings', JSON.stringify(_settings));
 }
@@ -441,7 +442,11 @@ function ShowFavorits(warning) { //if warning is true: message if there are no f
     $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');
     var stations = JSON.parse(localStorage.getItem('stations'));
     if (stations) {
-        stations = stations.sort(fieldSorter(['-rat', '-date']));
+        if (_settings.listorder === 'updated'){
+            stations = stations.sort(fieldSorter(['-date']));
+        } else {
+            stations = stations.sort(fieldSorter(['-rat', '-date']));
+        }
         stations.forEach((station) => {
             // console.log(`${new Date(station.date).toLocaleString()}`);
             list += `<tr id=${station.id}><td class="td-left"></td><td class="td-center">
@@ -665,6 +670,18 @@ $(document).ready(function () {
     $("#cou, #sty, #lan").change(function () {
         queryStart = 0;
         Select();
+    });
+    $("#ratingselect").click(function () {
+        // console.log(`ratingselect`);
+        if (_settings.listorder === 'stars-updated') {
+            _settings.listorder = 'updated';
+            $("#ratingselectimg").attr('src','./res/img/star-open.png');
+        } else {
+            _settings.listorder = 'stars-updated';
+            $("#ratingselectimg").attr('src','./res/img/star-full.png');
+        }
+        localStorage.setItem('settings', JSON.stringify(_settings));
+        ShowFavorits(false);
     });
     $("#favorits").on('click', function () {
         ShowFavorits(true);
@@ -955,7 +972,9 @@ function showHtml() {
     $("#savestation").text(_lg.Save);
     $("#cancelstation").html(_lg.Cancel);
     $("#editstations").html(_lg.EditStations);
-    $("#myFilter").attr("placeholder", _lg.Searchfor)
+    $("#myFilter").attr("placeholder", _lg.Searchfor);
+    let star = (_settings.listorder === 'stars-updated') ? 'full' : 'open';
+    $("#ratingselectimg").attr('src',`./res/img/star-${star}.png`);
 }
 
 const fieldSorter = (fields) => (a, b) => fields.map(o => { //sorts array of objects

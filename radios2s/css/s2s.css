@@ -1,3 +1,20 @@
+.menubar-item {
+    flex: 1 1 0px;
+    /* padding-left: 5px;
+    padding-right: 5px; */
+}
+
+.menubar{
+    display: flex;
+    justify-content: space-between;
+    padding-left: 10px;
+    /* padding-right: 10px; */
+}
+
+.ratingselect{
+    padding: 5px 0px;
+}
+
 .contheader{
    display: inline-block;
    line-height: 1.1;
@@ -25,7 +42,7 @@
     position: fixed; /* Stay in place */
     z-index: 1; /* Sit on top */
     left: 0;
-    top: 64px;
+    top: 100px;
 }
 
 /* .ratingzero{

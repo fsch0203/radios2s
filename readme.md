@@ -27,6 +27,7 @@ Based on config.xml the android apk is build in build.phonegap.com. The chrome e
 - Option added to show and edit information of non-playing station
 - Skipped storage permission
 - History of listened stations visible in favorits list
+- Added option to sort favorits
 
 #### Version 1.0.0
 - First stable version
