@@ -388,39 +388,39 @@ function Select() {
                 $('#activelist').append(list);
             }
         });
-    $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');
+    // $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');
     if (cou === '' && sty === '' && lan === '') {} else if (cou !== '' && sty === '' && lan === '') {
-        $('#cont-cou, #cou').removeClass('fs-black').addClass('fs-dark-gray');
+        // $('#cont-cou, #cou').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         $("#cou").val(cou_nr); //show selected country in header
     } else if (cou === '' && sty !== '' && lan === '') {
-        $('#cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');
+        // $('#cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(sty_nr.toString(), "selstyles");
         $("#sty").val(Number(sty_nr));
     } else if (cou === '' && sty === '' && lan !== '') {
-        $('#cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
+        // $('#cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(lan_nr.toString(), "sellanguages");
         $("#lan").val(lan_nr);
     } else if (cou !== '' && sty !== '' && lan === '') {
-        $('#cont-cou, #cou, #cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');
+        // $('#cont-cou, #cou, #cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         storeSelection(sty_nr.toString(), "selstyles");
         $("#cou").val(cou_nr);
         $("#sty").val(sty_nr);
     } else if (cou !== '' && sty === '' && lan !== '') {
-        $('#cont-cou, #cou, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
+        // $('#cont-cou, #cou, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         storeSelection(lan_nr.toString(), "sellanguages");
         $("#cou").val(cou_nr);
         $("#lan").val(lan_nr);
     } else if (cou === '' && sty !== '' && lan !== '') {
-        $('#cont-sty, #sty, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
+        // $('#cont-sty, #sty, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(sty_nr.toString(), "selstyles");
         storeSelection(lan_nr.toString(), "sellanguages");
         $("#sty").val(sty_nr);
         $("#lan").val(lan_nr);
     } else if (cou !== '' && sty !== '' && lan !== '') {
-        $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
+        // $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         storeSelection(sty_nr.toString(), "selstyles");
         storeSelection(lan_nr.toString(), "sellanguages");
@@ -730,6 +730,16 @@ $(document).ready(function () {
     $("#thumb-closed").on('click', function () {
         console.log('do nothing');
     });
+    $("#inf-removestation").on('click', function () {
+        var id = $(this).closest('tr').prev().prev().attr('id');
+        console.log(`remove station ${id}`);
+        var stations = JSON.parse(localStorage.getItem("stations"));    
+        objIndex = stations.findIndex((obj => obj.stationuuid == id));
+        stations.splice(objIndex,1);
+        localStorage.setItem('stations', JSON.stringify(stations));
+        $("#infoplayingstation").hide();
+        ShowFavorites();
+    });
     $("#activelist").on('click', 'tr td:nth-child(2)', function () {
         var id = $(this).closest('tr').attr('id');
         console.log('id' + ': ' + id);
@@ -959,6 +969,7 @@ function showHtml() {
     $("#lb-bitrate").html(_lg.Bitrate);
     $("#lb-setrating2").html(_lg.Rating);
     $("#lb-votes").html(_lg.Votes);
+    $("#lb-removestation").html(_lg.removestation);
     $("#titleeditform").html(_lg.EditStation);
     $("#namestation").html(_lg.NameStation);
     $("#stream").html(_lg.Stream);

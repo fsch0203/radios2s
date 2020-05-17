@@ -21,6 +21,8 @@ Based on config.xml the android apk is build in build.phonegap.com. The chrome e
 
 ### Version 1.1.1
 - Removed chromecast
+- Comply to new api of radio-browser
+- Option added to remove station from favorites list
 
 #### Version 1.1.0
 - Improved scaling of volume slider

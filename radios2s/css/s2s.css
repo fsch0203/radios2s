@@ -149,6 +149,17 @@
   font-size: 0.8em;
 }
 
+#inf-removestation {
+  display: block;
+  float: left;
+  width: 35px;
+  height: 35px;
+  margin-right: 20px;
+  background-size: 100% 100%;
+  background-image: url('../res/icon/remove.png');
+  cursor: pointer;
+}
+
 #thumb-open {
   display: block;
   float: left;
