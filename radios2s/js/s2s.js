@@ -1,14 +1,12 @@
-var version = "Version 0.3.3";
+var version = "1.1.1";
 _settings = JSON.parse(localStorage.getItem('settings'));
-if (_settings) {
-    //..
-} else {
+if (jQuery.isEmptyObject(_settings)){
     _settings = { //global variables that are stored in localstorage
         screenx: 1300, //position window
         screeny: 100,
         screenw: 474,
         screenh: 720,
-        maxfavorits: 100,
+        maxfavorites: 100,
         laststation: 0,
         lastvolume: 0.1,
         language: "en",
@@ -16,13 +14,12 @@ if (_settings) {
     };
     localStorage.setItem('settings', JSON.stringify(_settings));
 }
+var _servers = []; //available radio-browser servers
 var queryLimit = 200;
 var queryStart = 0; //start record in query
 var player;
 var castconnected = "unavailable";
-var urlplaying;
-var titplaying;
-var idplaying;
+var _stationplaying; //object
 var thisdevice = {
     model: "",
     uuid: ""
@@ -39,85 +36,80 @@ try {
 }
 console.log('run_as' + ': ' + run_as);
 
-function init() {
-    player = document.getElementById('player');
-    detectLanguage();
-    FillSelectOptions();
-    showHtml();
-    ShowFavorits(true); //shows favorites, if no favorites yet then Select(); in Select() you get stations db
-    _settings = JSON.parse(localStorage.getItem("settings"));
-    if (typeof _settings.laststation === 'undefined') {
-        _settings.laststation = 0;
-    } else {
-        SetStation(_settings.laststation);
+function init() { //triggered by get_radiobrowser_base_urls() or document.ready
+    // test_makeTaffy(); //only needed for testing migration
+    _settings = JSON.parse(localStorage.getItem("settings"));//always exist
+    stations = JSON.parse(localStorage.getItem("stations")); 
+    if (jQuery.isEmptyObject(stations)){
+        taffy_favorits = JSON.parse(localStorage.getItem("taffy_favorits"));
+        if (!(jQuery.isEmptyObject(taffy_favorits))){ //in LS no stations but taffy_favorits
+            console.log(`start migrating old taffy-data`);
+            migrateTaffy(); // Migrate taffy to stations, then getStation -> getStation -> showFavorites
+        } else { //no stations no taffy
+            ShowFavorites(true); //message that there are no favorites yet
+        }
+    } else { // there are stations in LS
+        getStation(_settings.laststation); //normal route
     }
     if (typeof _settings.lastvolume === 'undefined') {
         _settings.lastvolume = 0.1;
+        localStorage.setItem('settings', JSON.stringify(_settings));
     }
-    localStorage.setItem('settings', JSON.stringify(_settings));
     var vol = _settings.lastvolume;
-    // console.log(`volume: ${vol}`);
     setVolume(vol);
     vol = Math.pow(vol, 1 / 3);
     $("#volume-slider").simpleSlider("setValue", vol);
 }
 
-var app = {
-    testing_on_desktop: true,
-    // Application Constructor
-    initialize: function () {
-        if (document.URL.indexOf("http://" || "file://") === -1) {
-            this.testing_on_desktop = false;
-        }
-        this.bindEvents();
-    },
-    // Bind Event Listeners Bind any events that are required on startup. Common events are:
-    // 'load', 'deviceready', 'offline', and 'online'.
-    bindEvents: function () {
-        if (this.testing_on_desktop || run_as === 'ext') {
-            this.loadScript("js/cast_sender.js", function () {
-                console.log('Desktop: Loaded cast_sender.js');
-            });
-            this.loadScript("js/CastVideos.js", function () {
-                var castPlayer = new CastPlayer();
-            });
-        } else {
-            document.addEventListener('deviceready', this.onDeviceReady, false);
-        }
-    },
-    // deviceready Event Handler The scope of 'this' is the event. In order to call the 'receivedEvent'
-    // function, we must explicitly call 'app.receivedEvent(...);'
-    onDeviceReady: function () {
-        app.receivedEvent('deviceready');
-    },
-    // Update DOM on a Received Event
-    receivedEvent: function (id) {
-        console.log('Received Event: ' + id);
-        this.loadScript("js/CastVideos.js", function () {
-            console.log('Device: Loaded CastVideos.js');
-            var castPlayer = new CastPlayer();
-        });
-    },
-    loadScript: function (url, callback) {
-        var script = document.createElement("script")
-        script.type = "text/javascript";
-        if (script.readyState) { //IE
-            script.onreadystatechange = function () {
-                if (script.readyState == "loaded" ||
-                    script.readyState == "complete") {
-                    script.onreadystatechange = null;
-                    callback();
+function migrateTaffy() {
+    var urls = [];
+    var rb_url = 'http://www.radio-browser.info/webservice/json/stations/byid/';
+    let favorits = JSON.parse(localStorage.getItem('taffy_favorits'));
+    favorits.forEach((favorit) => { //make an array of urls to fetch
+        urls.push(rb_url + favorit.id);
+    });
+    let stationsold = [];
+    Promise.all(urls.map(url => // use map() to perform a fetch and handle the response for each url
+            fetch(url)
+            .then(response => response.json())
+            .then((results) => {
+                if (results.length > 0) {
+                    let result = results[0];
+                    objIndex = favorits.findIndex((obj => obj.id == result.id));
+                    result.rating = favorits[objIndex].rat;
+                    result.date = new Date().toISOString();
+                    stationsold.push(result);
                 }
-            };
-        } else { //Others
-            script.onload = function () {
-                callback();
-            };
+            })
+            .catch(error => {
+                console.error(`Error: ${error} `);
+            })
+        ))
+        .then(data => { // we have them all
+            localStorage.setItem('stations', JSON.stringify(stationsold));
+            getStation(_settings.laststation);
+            localStorage.removeItem("taffy_favorits");
+        })
+}
+
+chrome.webRequest.onBeforeSendHeaders.addListener(
+    function (details) {
+        for (var i = 0; i < details.requestHeaders.length; ++i) {
+            if (details.requestHeaders[i].name === 'User-Agent') {
+                // console.log(`${details.requestHeaders[i].value}`);
+                details.requestHeaders[i].value = `RadioS2S/${version}`;
+                // console.log(`${details.requestHeaders[i].value}`);
+                break;
+            }
         }
-        script.src = url;
-        document.getElementsByTagName("head")[0].appendChild(script);
-    }
-};
+        return {
+            requestHeaders: details.requestHeaders
+        };
+    }, {
+        urls: ['<all_urls>']
+    },
+    ['blocking', 'requestHeaders']
+);
 
 function w3_open() { //sidebar open, overlay for dark background
     $("#mySidebar").show();
@@ -221,7 +213,7 @@ $(window).scroll(function (event) {
     didScroll = true;
 });
 setInterval(function () { //check scroll every 250ms
-    saveWindowPosition();
+    // saveWindowPosition();
     if (didScroll) {
         hasScrolled();
         didScroll = false;
@@ -253,7 +245,7 @@ function setWindow() {
     self.resizeTo(_settings.screenw, _settings.screenh);
 }
 
-function saveWindowPosition() { //activated after redrawweblinks or hasscrolled
+function saveWindowPosition() { //activated after getStation and showFavorites
     _settings.screenx = window.screenX; //position is saved after every calculation
     _settings.screeny = window.screenY;
     _settings.screenw = window.outerWidth;
@@ -268,69 +260,79 @@ function setVolume(volume) {
     // localStorage.setItem("lastvolume", volume);
 }
 
-function SetStation(id) {
-    $.post("http://www.radio-browser.info/webservice/v2/json/url/" + id, //get playable station url
-        function (res) {
-            if (res.ok == 'true') {
-                urlplaying = res.url;
-                // get other info of station ----------------
-                $.post("http://www.radio-browser.info/webservice/json/stations/byid/" + id,
-                    function (results) {
-                        var urlfavicon = results[0].favicon;
-                        if (results[0].favicon) {
-                            $('.favicon').css({
-                                "background-image": "url(" + urlfavicon + ")",
-                                "display": "block"
-                            })
-                        } else {
-                            $('.favicon').css("display", "none")
-                        }
-                        titplaying = results[0].name;
-                        idplaying = id;
-                        _settings.laststation = id;
-                        localStorage.setItem('settings', JSON.stringify(_settings));
-                        // localStorage.setItem("laststation", id);
-                        var btr = results[0].bitrate; //bitrate
-                        $("#selectedstation").html(titplaying + " - " + btr + " kbps");
-                        var stations = JSON.parse(localStorage.getItem('stations'));
-                        let rating = 0;
-                        if (stations) { //if station already rated
-                            objIndex = stations.findIndex((obj => obj.tit == titplaying));
-                            rating = (objIndex > -1) ? stations[objIndex].rat : 0;
-                        }
-                        $('#rateitfooter').rateit('value', rating)
-                        console.log('urlplaying id' + ': ' + urlplaying + ' ' + id);
-                        $("#player").attr("src", urlplaying);
-                        var x1 = jQuery.trim(urlplaying).substring(0, 42).trim(this);
-                        x1 = (urlplaying.length > x1.length) ? x1 + "..." : x1;
-                        $(".url").html(x1);
-                        var pl = document.getElementById('play');
-                        pl.click(); //activate CastVideo.js
-                        updateRating(rating, id, titplaying);
-                        $.get("https://ipinfo.io", function (ipinfo) {
-                            // ipaddress = ipinfo.ip;
-                            $.post("https://radios2s.scriptel.nl/sure/savestation03.php", {
-                                id: id,
-                                tit: titplaying,
-                                ip: ipinfo.ip,
-                                hostname: ipinfo.hostname,
-                                city: ipinfo.city,
-                                region: ipinfo.region,
-                                country: ipinfo.country,
-                                loc: ipinfo.loc,
-                                org: ipinfo.org,
-                                mod: thisdevice.model,
-                                uuid: thisdevice.uuid
-                            }, function (results) {
-                                console.log('posted to radios2s.scriptel.nl: ' + results.id);
-                            });
-                        }, "jsonp");
-                    });
-            } else {
-                // alert("Sorry, \nradio station is not availlable");
-            }
-        });
+function getStation(id) { //select station to play
+    _servers = JSON.parse(localStorage.getItem('servers'));
+    saveWindowPosition();
+    var stations =  JSON.parse(localStorage.getItem('stations'));
+    if (id == 0 && jQuery.isEmptyObject(stations)){
+        ShowFavorites(true);
+    } else {
+        if (id == 0){
+            id = stations[0].stationuuid;
+        }
+        if (_servers){
+            $.post(_servers[0] + "/json/stations/byuuid/" + id, //get playable station url
+                function (results) {
+                    setStation(results);
+            });
+        }
+    }
 }
+
+function setStation(results){
+    if (results.length > 0) {
+        let result = results[0];
+        console.log(`${JSON.stringify(result.url)}`);
+        var urlfavicon = result.favicon;
+        if (result.favicon) {
+            $('.favicon').css({
+                "background-image": "url(" + urlfavicon + ")",
+                "display": "block"
+            })
+        } else {
+            $('.favicon').css("display", "none")
+        }
+        _stationplaying = result;
+        let id = result.stationuuid;
+        _settings.laststation = id;
+        localStorage.setItem('settings', JSON.stringify(_settings));
+        $("#selectedstation").html(result.name + " - " + result.bitrate + " kbps");
+        var stations = JSON.parse(localStorage.getItem('stations'));
+        let rating = 0;
+        if (stations) {
+            objIndex = stations.findIndex((obj => obj.stationuuid == id));
+            rating = (objIndex > -1) ? stations[objIndex].rating : 0; //if station already rated use rating
+        }
+        $('#rateitfooter').rateit('value', rating)
+        console.log('urlplaying id' + ': ' + result.url + ' ' + id);
+        $("#player").attr("src", result.url);
+        var x1 = jQuery.trim(result.url).substring(0, 42).trim(this);
+        x1 = (result.url.length > x1.length) ? x1 + "..." : x1;
+        $(".url").html(x1);
+        updateStation(rating, result);
+        ShowFavorites(false);
+        $.get("https://ipinfo.io", function (ipinfo) {
+            $.post("https://radios2s.scriptel.nl/sure/savestation03.php", {
+                id: id,
+                tit: result.name,
+                ip: ipinfo.ip,
+                hostname: ipinfo.hostname,
+                city: ipinfo.city,
+                region: ipinfo.region,
+                country: ipinfo.country,
+                loc: ipinfo.loc,
+                org: ipinfo.org,
+                mod: thisdevice.model,
+                uuid: thisdevice.uuid
+            }, function (result) {
+                console.log('posted to radios2s.scriptel.nl: ' + result.id);
+            });
+        }, "jsonp");
+    } else {
+    // alert("Sorry, \nradio station is not availlable");
+    }
+}
+
 
 function EditStation(tit) {
     var xtrastations = JSON.parse(localStorage.getItem('xtrastations'));
@@ -369,24 +371,22 @@ function Select() {
         offset: st,
         limit: queryLimit
     };
-    $.post("http://www.radio-browser.info/webservice/json/stations/search", param, //get stations
+    _servers = JSON.parse(localStorage.getItem('servers'));
+    $.post(_servers[0] + "/json/stations/search", param, //get stations
         function (results) {
             var list = '';
             var n = 0;
             for (i in results) {
-                // list += "<tr id=" + results[i].id + "><td>" + results[i].name + "</td></tr>";
-                list += `<tr id=${results[i].id}><td class="td-left"></td><td class="td-center">
+                list += `<tr id=${results[i].stationuuid}><td class="td-left"></td><td class="td-center">
             <span>${results[i].name}</span></td>
             <td class="td-right"><span class="edit-icon"><img src="./res/img/info-128x128.png" width="30"></span></td>
             </tr>`;
-                // n += 1;
             }
             if (queryStart === 0) {
                 $('#activelist').html(list);
             } else {
                 $('#activelist').append(list);
             }
-            // console.log('rows#' + ': ' + n);
         });
     $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');
     if (cou === '' && sty === '' && lan === '') {} else if (cou !== '' && sty === '' && lan === '') {
@@ -448,31 +448,31 @@ function storeSelection(elem, str) {
     FillSelectOptions();
 }
 
-function ShowFavorits(warning) { //if warning is true: message if there are no favorits (at start and if user clicks favorits button)
-    var x;
+function ShowFavorites(warning) { //if warning is true: message if there are no favorites (at start and if user clicks favorites button)
+    saveWindowPosition();
     var list = '';
     $("#cou, #sty, #lan").val('').prop('selected', true);
     $("#myFilter").val('');
     $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');
     var stations = JSON.parse(localStorage.getItem('stations'));
-    if (stations) {
-        if (_settings.listorder === 'updated'){
+    if (!(jQuery.isEmptyObject(stations))) {
+        if (_settings.listorder === 'updated') {
             stations = stations.sort(fieldSorter(['-date']));
         } else {
-            stations = stations.sort(fieldSorter(['-rat', '-date']));
+            stations = stations.sort(fieldSorter(['-rating', '-date']));
         }
         stations.forEach((station) => {
-            // console.log(`${new Date(station.date).toLocaleString()}`);
-            list += `<tr id=${station.id}><td class="td-left"></td><td class="td-center">
+            var favicon = (station.favicon) ? station.favicon : "./res/img/info-128x128.png";
+            list += `<tr id=${station.stationuuid}><td class="td-left"></td><td class="td-center">
             <span class="label-small">
-            <img src="./res/img/${station.rat}star.png" width="60">
+            <img src="./res/img/${station.rating}star.png" width="60">
             </span><span class="label-small" style="float:right">${date2LocalString(station.date)}</span><br>
-            <span>${station.tit}</span></td>
-            <td class="td-right"><span class="edit-icon"><img src="./res/img/info-128x128.png" width="30"></span></td>
+            <span>${station.name}</span></td>
+            <td class="td-right"><span class="edit-icon"><img class="stationfavicon" src=${favicon} width="40""></span></td>
             </tr>`;
         });
         $('#activelist').html(list);
-    } else if (warning) { //no favorits yet
+    } else if (warning) { //no favorites yet
         var msg = "<h4>" + _lg.wrn02 + "</h4>";
         msg += "<p>" + _lg.wrn03 + "</p>";
         var hd = _lg.wrn01;
@@ -480,7 +480,7 @@ function ShowFavorits(warning) { //if warning is true: message if there are no f
         $("#logo").hide();
         showMessage(hd, msg);
         Select();
-    } else { //no favorits, no warning
+    } else { //no favorites, no warning
         $("#favicon").removeClass("favicon2");
         $("#popup01").hide();
         Select();
@@ -570,95 +570,102 @@ function swipe() { //activates swiperight and swipeleft
 }
 
 function showStation(id) {
-    $.post("http://www.radio-browser.info/webservice/json/stations/byid/" + id, //get playing station
-        function (results) {
-            if (results[0] !== undefined) { //sometimes radiobrowser has no info on station
-                $("#thumb-open").show();
-                $("#thumb-closed").hide();
-                var rs = results[0];
-                // id = rs.id;
-                console.log(`${id}`);
-                if (rs.favicon) {
-                    $("#favicon2").addClass("favicon2");
-                    $('.favicon2').css({
-                        "background-image": "url(" + rs.favicon + ")",
-                        "display": "block"
-                    })
-                }
-                // console.log(`${id} ${idplaying}`);
-                if (id == idplaying) {
-                    $("#playingstat").html(_lg.Playingstation);
-                } else {
-                    $("#playingstat").html(_lg.Infostation);
-                }
-                // $('.titplaying').html(titplaying);
-                $('.titplaying').html(rs.name);
-                // $('#inf-urlplaying').html(urlplaying);
-                $('#inf-urlplaying').html(rs.url);
-                $("#inf-homeurl").attr("href", rs.homepage);
-                $("#inf-homeurl").html(rs.homepage);
-                $("#inf-country").html(rs.country);
-                $("#inf-state").html(rs.state);
-                $("#inf-tags").html(rs.tags);
-                $("#inf-language").html(rs.language);
-                $("#inf-codec").html(rs.codec);
-                $("#inf-bitrate").html(rs.bitrate + '&nbsp;kb/s');
-                $('#inf-votes').html(rs.votes);
-                var stations = JSON.parse(localStorage.getItem('stations'));
-                objIndex = stations.findIndex((obj => obj.id == id));
-                var r = (objIndex>-1) ? stations[objIndex].rat : 0;
-                console.log(`${r}`);
-                $('#rateitinfo').rateit('value', r);
-                $('#rateitinfo').closest('tr').attr('id', id);
-                $('#rateitinfo').closest('tr').attr('name', rs.name);
-                $("#infoplayingstation").show();
-            } else {
-                alert(_lg.noinfo);
-                var stations = JSON.parse(localStorage.getItem('stations'));
-                objIndex = stations.findIndex((obj => obj.id == id));
-                if (objIndex>-1) {
-                    stations.splice(objIndex, 1);
-                }
-                // favorits({
-                //     id: id
-                // }).remove();
-                ShowFavorits(false);
-            }
-        });
+    var stations = JSON.parse(localStorage.getItem('stations'));
+    objIndex = stations.findIndex((obj => obj.stationuuid == id));
+    if (objIndex > -1) {
+        var rs = stations[objIndex];
+        $("#thumb-open").show();
+        $("#thumb-closed").hide();
+        console.log(`${id}`);
+        if (rs.favicon) {
+            $("#favicon2").addClass("favicon2");
+            $('.favicon2').css({
+                "background-image": "url(" + rs.favicon + ")",
+                "display": "block"
+            })
+        }
+        if (id == _stationplaying.stationuuid) {
+            $("#playingstat").html(_lg.Playingstation);
+        } else {
+            $("#playingstat").html(_lg.Infostation);
+        }
+        $('.titplaying').html(rs.name);
+        $('#inf-urlplaying').html(rs.url);
+        $("#inf-homeurl").attr("href", rs.homepage);
+        $("#inf-homeurl").html(rs.homepage);
+        $("#inf-country").html(rs.country); //deprecated
+        $("#inf-state").html(rs.state);
+        $("#inf-tags").html(rs.tags);
+        $("#inf-language").html(rs.language);
+        $("#inf-codec").html(rs.codec);
+        $("#inf-bitrate").html(rs.bitrate + '&nbsp;kb/s');
+        $('#inf-votes').html(rs.votes);
+        var rating = (rs.rating) ? rs.rating : 0;
+        console.log(`${rating}`);
+        $('#rateitinfo').rateit('value', rating);
+        $('#rateitinfo').closest('tr').attr('id', id);
+        $('#rateitinfo').closest('tr').attr('name', rs.name);
+        $("#infoplayingstation").show();
+    } else {
+        alert(_lg.noinfo);
+        stations.splice(objIndex, 1);
+        localStorage.setItem('stations', JSON.stringify(stations));
+        ShowFavorites(false);
+    }
 }
 
 $(document).ready(function () {
     setWindow();
     swipe();
-    init();
-    app.initialize();
+    player = document.getElementById('player');
+    detectLanguage();
+    FillSelectOptions();
+    showHtml();
+    servers = JSON.parse(localStorage.getItem("servers"));
+    if (!(jQuery.isEmptyObject(servers))){ //start with servers from LS
+        init();
+    }
+    get_radiobrowser_base_urls(); //get working servers and then (if necessary) getStation with laststation
+    $('img').on('error', function () { //not working yet
+        console.log(`img replaced`);
+        $(this).attr("src", "./res/img/info-128x128.png");
+    });
     $('#rateitinfo').bind('rated', function (e, rating) {
         var id = $(this).closest('tr').attr('id');
-        var name = $(this).closest('tr').attr('name');
-        // console.log(`updateRating: ${rating} ${id} ${name}`);
-        updateRating(rating, id, name);
+        var stations = JSON.parse(localStorage.getItem('stations'));
+        objIndex = stations.findIndex((obj => obj.stationuuid == id));
+        if (objIndex > -1) {
+            console.log(`reset`);
+            // var name = $(this).closest('tr').attr('name');
+            updateStation(rating, stations[objIndex]);
+            ShowFavorites(false);
+        }
     });
     $("#rateitinfo").bind('reset', function () {
-        console.log(`reset`);
         var id = $(this).closest('tr').attr('id');
-        var name = $(this).closest('tr').attr('name');
-        updateRating(0, id, name);
+        var stations = JSON.parse(localStorage.getItem('stations'));
+        objIndex = stations.findIndex((obj => obj.stationuuid == id));
+        if (objIndex > -1) {
+            console.log(`reset`);
+            updateStation(0, stations[objIndex]);
+            ShowFavorites(false);
+        }
     });
     $('#rateitfooter').bind('rated', function (e, rating) {
-        updateRating(rating, idplaying, titplaying);
+        updateStation(rating, _stationplaying);
+        ShowFavorites(false);
     });
     $("#rateitfooter").bind('reset', function () {
-        updateRating(0, idplaying, titplaying);
+        updateStation(0, _stationplaying);
+        ShowFavorites(false);
     });
-
-    // $('#play, #pause, .favicon, .w3-select').css( 'cursor', 'pointer' );
     $("#pause").on('click', function () {
         $("#player").attr("src", '');
         $("#play").show();
         $("#pause").hide();
     });
     $("#play").on('click', function () {
-        $("#player").attr("src", urlplaying);
+        $("#player").attr("src", _stationplaying.url);
         $("#play").hide();
         $("#pause").show();
     });
@@ -690,34 +697,34 @@ $(document).ready(function () {
         // console.log(`ratingselect`);
         if (_settings.listorder === 'stars-updated') {
             _settings.listorder = 'updated';
-            $("#ratingselectimg").attr('src','./res/img/star-open.png');
+            $("#ratingselectimg").attr('src', './res/img/star-open.png');
         } else {
             _settings.listorder = 'stars-updated';
-            $("#ratingselectimg").attr('src','./res/img/star-full.png');
+            $("#ratingselectimg").attr('src', './res/img/star-full.png');
         }
         localStorage.setItem('settings', JSON.stringify(_settings));
-        ShowFavorits(false);
+        ShowFavorites(false);
     });
-    $("#favorits").on('click', function () {
-        ShowFavorits(true);
+    $("#favorites").on('click', function () {
+        ShowFavorites(true);
     });
     $("#volume-slider").bind("slider:changed", function (event, data) {
         let vol = Math.pow(data.ratio, 3); //better scaling for volume
         setVolume(vol); // The value as a ratio of the slider (between 0 and 1)
     });
     $("#thumb-open").on('click', function () {
-        // var id = favorits({tit: titplaying}).get()[0].id;
-        $.post("http://www.radio-browser.info/webservice/json/vote/" + idplaying, //set vote
+        var id = $(this).closest('tr').prev().attr('id');
+        $.post(_servers[0] + "/json/vote/" + id, //set vote
             function (results) {
                 var x = (Number($('#inf-votes').text()) + 1).toString();
-                if (results.ok == 'true') {
+                if (results.ok == true) {
                     $('#inf-votes').html(x); //show increased number of votes
                     $("#thumb-open").hide();
                     $("#thumb-closed").show();
                 } else {
                     alert(results.message);
                 }
-                console.log('id msg ok' + ': ' + idplaying + ' ' + results.message + ' ' + results.ok);
+                console.log('id msg ok' + ': ' + id + ' ' + results.message + ' ' + results.ok);
             });
     });
     $("#thumb-closed").on('click', function () {
@@ -726,7 +733,7 @@ $(document).ready(function () {
     $("#activelist").on('click', 'tr td:nth-child(2)', function () {
         var id = $(this).closest('tr').attr('id');
         console.log('id' + ': ' + id);
-        SetStation(id);
+        getStation(id);
     });
     $("#activelist").on('click', 'tr td:nth-child(3)', function () {
         var id = $(this).closest('tr').attr('id');
@@ -769,7 +776,7 @@ $(document).ready(function () {
     });
     $(".infothisstation").on('click', function () {
         w3_close();
-        showStation(idplaying);
+        showStation(_stationplaying.stationuuid);
     });
     $(".goabout").on('click', function () {
         w3_close();
@@ -829,7 +836,7 @@ $(document).ready(function () {
         // var sel = xtrastat().get();
         var list = '';
         xtrastations.forEach((xtrastation) => {
-        // for (var n = 0; n < xtrastations.length; n++) {
+            // for (var n = 0; n < xtrastations.length; n++) {
             list += `<tr><td><span class="label-small"></span><br><span>${xtrastation.tit}</span></td></tr>`;
         });
         localStorage.setItem('xtrastations', JSON.stringify(xtrastations));
@@ -854,10 +861,6 @@ $(document).ready(function () {
     $('#close-sidebar').on('click', function () {
         w3_close();
     });
-    $('#initcast').on('click', function () {
-        app.initialize();
-        w3_close();
-    });
     $("#myOverlay").on('click', function () {
         w3_close();
     });
@@ -872,51 +875,31 @@ $(document).ready(function () {
             language: languages[0][$("#ilan").val()],
             tags: styles[0][$("#isty").val()]
         };
-        var stationxtr = { //station in format xtrastat
-            tit: $("#itit").val(),
-            u1: $("#iu1").val(),
-            hom: $("#ihom").val(),
-            fav: $("#ifav").val(),
-            cou: $("#icou").val(), //country code
-            sta: $("#ista").val(),
-            lan: $("#ilan").val(), //lan code
-            sty: $("#isty").val() //sty code
-        };
         if (stationrb.name === '') {
             alert("Enter name");
         } else if (!UrlCheck(stationrb.url)) {
             alert("Enter correct url");
         } else {
-            var xtrastations = JSON.parse(localStorage.getItem('xtrastations'));
-            if (!(xtrastations)) xtrastations = [];
-            objIndex = xtrastations.findIndex((obj => obj.tit == stationrb.name));
-            if (objIndex > -1) { //station exists in xtrastations
-                id = xtrastations[objIndex].id;
-                $.post("http://www.radio-browser.info/webservice/json/edit/" + id, stationrb,
-                    function (results) {
-                        if (results.ok == 'true') {
-                            stationrb.id = results.id;
-                            updateLocal(stationxtr);
-                            alert(results.message);
-                        } else {
-                            alert(results.message);
-                        }
-                    });
-            } else { //new station
-                $.post("http://www.radio-browser.info/webservice/json/add", stationrb,
-                    function (results) {
-                        if (results.ok == 'true') {
-                            stationrb.id = results.id;
-                            stationrb.stream_check_bitrate = results.stream_check_bitrate;
-                            updateLocal(stationxtr);
-                            alert(results.message);
-                        } else {
-                            alert(results.message);
-                        }
-                    });
-            }
-            $('#editstation').hide();
+            var stations = JSON.parse(localStorage.getItem('stations'));
+            $.post(_servers[0] + "/json/add", stationrb, function (results) {
+                if (results.ok == true) {
+                    const date = new Date().toISOString();
+                    stationrb.date = date;
+                    stationrb.stationuuid = results.uuid;
+                    stationrb.rating = 0;
+                    stations.push(stationrb);
+                    localStorage.setItem('stations', JSON.stringify(stations));
+                    alert(results.message);
+                    getStation(stationrb.stationuuid);
+                } else {
+                    alert(results.message);
+                }
+            });
         }
+        $('#editstation').hide();
+    });
+    $("#test").on('click', function () {
+        // migrateTaffy();
     });
 });
 
@@ -965,7 +948,7 @@ function showHtml() {
     $("#playingstation").html(_lg.Playingstation);
     $("#initcast").html(_lg.initcast);
     $("#goabout").html(_lg.About1);
-    $("#favorits").html(_lg.Favorits);
+    $("#favorites").html(_lg.Favorites);
     // $("#playingstat").html(_lg.Playingstation);
     $("#lb-homeurl").html(_lg.homeurl);
     $("#lb-country").html(_lg.Country);
@@ -989,7 +972,7 @@ function showHtml() {
     $("#editstations").html(_lg.EditStations);
     $("#myFilter").attr("placeholder", _lg.Searchfor);
     let star = (_settings.listorder === 'stars-updated') ? 'full' : 'open';
-    $("#ratingselectimg").attr('src',`./res/img/star-${star}.png`);
+    $("#ratingselectimg").attr('src', `./res/img/star-${star}.png`);
 }
 
 const fieldSorter = (fields) => (a, b) => fields.map(o => { //sorts array of objects
@@ -1002,46 +985,105 @@ const fieldSorter = (fields) => (a, b) => fields.map(o => { //sorts array of obj
     return a[o] > b[o] ? dir : a[o] < b[o] ? -(dir) : 0;
 }).reduce((p, n) => p ? p : n, 0);
 
-function updateRating(rating, id, tit) { //update rating of playing station
+function updateStation(rating, station) { //update (rating of) (playing) station; station in radio-browser format
     const date = new Date().toISOString();
-    let station = {
-        id: id,
-        tit: tit,
-        rat: rating,
-        date: date
-    };
+    station.date = date;
+    station.rating = rating;
     var stations = JSON.parse(localStorage.getItem('stations'));
     if (stations) {
-        objIndex = stations.findIndex((obj => obj.id == id));
+        objIndex = stations.findIndex((obj => obj.stationuuid == station.stationuuid));
         if (objIndex > -1) {
             stations[objIndex] = station;
-            console.log(`updated rating ${id} ${tit} ${rating} ${date}`);
+            console.log(`updated station ${rating} ${date} ${station.name}`);
         } else {
             stations.push(station);
-            console.log(`new station ${id} ${tit} ${rating} ${date}`);
+            console.log(`new favorite ${rating} ${date} ${station.name}`);
         }
     } else {
         stations = [];
         stations.push(station);
-        console.log(`new db, new station ${id} ${tit} ${rating} ${date}`);
+        console.log(`new localstorage, new favorite ${rating} ${date} ${station.name}`);
     }
-    stations = stations.sort(fieldSorter(['-rat', '-date']));
+    stations = stations.sort(fieldSorter(['-rating', '-date']));
     if (stations.length > _settings.maxstations) {
         stations.length = _settings.maxstations;
     }
-    console.log(`${JSON.stringify(stations, null, '\t')}`);
     localStorage.setItem('stations', JSON.stringify(stations));
-    ShowFavorits(false);
 }
 
-function updateLocal(xtr) { //strb = station on format radiobrowser.info
-    var xtrastations = JSON.parse(localStorage.getItem('xtrastations'));
-    if (!(xtrastations)) xtrastations = [];
-    objIndex = xtrastations.findIndex((obj => obj.tit == xtr.tit));
-    if (objIndex > -1) {
-        xtrastations[objIndex] = xtr;
-    } else { //new station
-        xtrastations.push(xtr);
-    }
-    localStorage.setItem('xtrastations', JSON.stringify(xtrastations));
+// function updateLocal(xtr) { //strb = station on format radiobrowser.info
+//     var xtrastations = JSON.parse(localStorage.getItem('xtrastations'));
+//     if (!(xtrastations)) xtrastations = [];
+//     objIndex = xtrastations.findIndex((obj => obj.tit == xtr.tit));
+//     if (objIndex > -1) {
+//         xtrastations[objIndex] = xtr;
+//     } else { //new station
+//         xtrastations.push(xtr);
+//     }
+//     localStorage.setItem('xtrastations', JSON.stringify(xtrastations));
+// }
+
+function get_radiobrowser_base_urls() {
+    $.post("http://all.api.radio-browser.info/json/servers", //get all servers
+        function (results) {
+            if (results.length > 0) {
+                _servers = results.map(x => "https://" + x.name);
+                console.log(`${_servers}`);
+                get_radiobrowser_server_status(_servers);
+            }
+        });
 }
+
+function get_radiobrowser_server_status(servers) {
+    let _servers = []; //get first 3 working stations
+    $.when(
+        $.post(servers[0] + '/json/stats', function (results) {
+            if (results.status === 'OK') {
+                _servers.push(servers[0]);
+                // localStorage.setItem('servers', JSON.stringify(_servers));
+            }
+        }),
+        $.post(servers[1] + '/json/stats', function (results) {
+            if (results.status === 'OK') {
+                _servers.push(servers[1]);
+                // localStorage.setItem('servers', JSON.stringify(_servers));
+            }
+        }),
+        $.post(servers[2] + '/json/stats', function (results) {
+            if (results.status === 'OK') {
+                _servers.push(servers[2]);
+                // localStorage.setItem('servers', JSON.stringify(_servers));
+            }
+        })
+    ).then(function () {
+        servers = JSON.parse(localStorage.getItem("servers"));
+        if ((jQuery.isEmptyObject(servers))){ //in this case init() hasn't yet started
+            localStorage.setItem('servers', JSON.stringify(_servers));
+            init();
+        } else {
+            console.log(`${JSON.stringify(_servers)}`);
+            localStorage.setItem('servers', JSON.stringify(_servers));
+        }
+    })
+}
+
+function test_makeTaffy() { //run once in init() to make taffy_favorits for testing
+    var favorits = TAFFY(testjson);
+    favorits.store('favorits');
+}
+
+var testjson = [{id: "85745", tit: "NPO Radio 4 - Concerten", rat: 5},
+    {id: "66458", tit: "Klara Continuo", rat: 5},
+    {id: "64095", tit: "BBC Radio 3", rat: 4},
+    {id: "111183", tit: "Radio Swiss Classic", rat: 3},
+    {id: "49601", tit: "NPO Radio 4", rat: 2},
+    {id: "86716", tit: "24/7 Bach", rat: 1},
+    {id: "99066", tit: "Boston Baroque Radio", rat: 1},
+    {id: "101487", tit: "Concertzender Geen dag zonder Bach", rat: 2},
+    {id: "94556", tit: "Radio Symphony", rat: 2},
+    {id: "89644", tit: "BNR Nieuwsradio", rat: 1},
+    {id: "85586", tit: "NPO Radio 1", rat: 1},
+    {id: "11957", tit: "Venice Classic Radio", rat: 3},
+    {id: "126840", tit: "Concertzender Klassiek", rat: 3},
+    {id: "101494", tit: "Concertzender Gaudeamus", rat: 2},
+    {id: "101488", tit: "Concertzender Klassieke Muziek", rat: 2}];

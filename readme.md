@@ -7,8 +7,7 @@ You can find the Android app in the [Google Playstore](https://play.google.com/s
 I have tried to make the user interface as simple as possible:
 * select on country, style (genre) or language
 * quick search by typing in (part of the) the name of the station
-* give one or more stars if you want to save a station as a favorite
-* cast to chromecast audio
+* give one or more stars if you want to save a station as a favoritee
 
 With a chromecast (audio) device connected you can now listen to every station on your home music system.
 
@@ -20,14 +19,17 @@ Based on config.xml the android apk is build in build.phonegap.com. The chrome e
 
 ## Change log
 
+### Version 1.1.1
+- Removed chromecast
+
 #### Version 1.1.0
 - Improved scaling of volume slider
 - Small changes in layout
-- Added date field in favorits list
+- Added date field in favorites list
 - Option added to show and edit information of non-playing station
 - Skipped storage permission
-- History of listened stations visible in favorits list
-- Added option to sort favorits
+- History of listened stations visible in favorites list
+- Added option to sort favorites
 - Save position and size of window
 
 #### Version 1.0.0

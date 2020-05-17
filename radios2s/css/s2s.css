@@ -248,7 +248,7 @@
   background-image: url('../res/img/audio_on.png');
 }
 
-#favorits {
+#favorites {
   margin-right: 0.2em;
   margin-top: 0.2em;
   margin-bottom: 0.2em;
@@ -346,6 +346,7 @@ tr:active {
 
 .label-small {
     font-size: 0.65em;
+    padding-right: 1.0em;
 }
 
 img{

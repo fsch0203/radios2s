@@ -10,7 +10,7 @@
     <link href="css/simple-slider-volume.css" rel="stylesheet" type="text/css" />
     <link href="css/rateit.css" rel="stylesheet" type="text/css" />
     <script src="js/jquery-3.2.1.min.js"></script>
-    <!-- <script src="js/taffy-min.js"></script> -->
+    <script src="js/taffy-min.js"></script>
     <script src="js/jquery.rateit.min.js"></script>
     <script src="js/simple-slider.min.js"></script>
     <!-- <script type="text/javascript" src="cordova.js"></script> -->
@@ -29,7 +29,7 @@
         <a href="#" class="w3-bar-item w3-button" id="makenewstation"></a>
         <a href="#" class="w3-bar-item w3-button" id="goeditstations"></a>
         <a href="#" class="w3-bar-item w3-button infothisstation" id="playingstation"></a>
-        <button class="w3-bar-item w3-button" id="initcast"></button>
+        <!-- <a href="#" class="w3-bar-item w3-button" id="test">Test</a> -->
         <a href="#" class="w3-bar-item w3-button" id="closeapp"></a>
         <a href="#" class="w3-bar-item w3-button goabout" id="goabout"></a>
     </div>
@@ -49,21 +49,19 @@
 
             </div>
         </div>
-        <div class="w3-display-topright casticon connected" id="casticonactive"></div>
-        <div class="w3-display-topright casticon notconnected" id="casticonidle"></div>
         <div class="w3-cell-row menubar w3-black">
             <a href="#" title="Sort on rating" class="ratingselect" id="ratingselect">
                 <img id="ratingselectimg" src="./res/img/star-full.png" width="24"></a>
             <div class="w3-container w3-cell w3-cell-middle menubar-item" id="cont-cou">
-                <select class="w3-select w3-border-0 country" name="country" id="cou">
+                <select class="w3-select w3-black w3-border-0 country" name="country" id="cou">
                 </select>
             </div>
             <div class="w3-container w3-cell w3-cell-middle menubar-item" id="cont-sty">
-                <select class="w3-select w3-border-0 style" name="style" id="sty">
+                <select class="w3-select w3-black w3-border-0 style" name="style" id="sty">
                 </select>
             </div>
             <div class="w3-container w3-cell w3-cell-middle menubar-item" id="cont-lan">
-                <select class="w3-select w3-border-0 language" name="language" id="lan">
+                <select class="w3-select w3-black w3-border-0 language" name="language" id="lan">
                 </select>
             </div>
         </div>
@@ -76,7 +74,7 @@
                        id="myFilter">
             </div>
             <div class="w3-container w3-cell w3-cell-middle">
-                <a href="#" class="w3-button fs-black w3-ripple" id="favorits"></a>
+                <a href="#" class="w3-button fs-black w3-ripple" id="favorites"></a>
             </div>
             <table class="w3-table-all w3-margin-top" id="activelist">
                 <!--Radio list-->
@@ -142,10 +140,7 @@
                         <tr>
                             <td id="lb-setrating2"></td>
                             <td>
-                                <!-- <div id="ratingzero2" class="w3-container w3-cell ratingzero"></div> -->
                                 <div class="w3-container w3-cell" style="width:120px; padding-left:0px">
-                                    <!-- <div id="setrating2"></div> -->
-                                    <!-- <div class="rateit rateitinfo" id="rateitinfo" data-rateit-step="1" data-rateit-mode="font" style="font-size:25px"></div> -->
                                     <div class="rateit" id="rateitinfo" data-rateit-step="1"></div>
                                 </div>
                             </td>
@@ -247,7 +242,7 @@
                 <!-- <div id="ratingzero" class="w3-container w3-cell ratingzero">
 				</div> -->
                 <div class="w3-container w3-cell" style="float:right">
-                    <!-- <div id="setrating" title="Set rating to make favorite"></div> -->
+                    <!-- <div id="setrating" title="Set rating to make favoritee"></div> -->
                     <div class="rateit" id="rateitfooter" data-rateit-step="1" data-rateit-mode="font"
                          style="font-size:25px"></div>
                 </div>
@@ -261,7 +256,7 @@
                     <!-- <input type="range" id="rngVolume" min="0" max="1" step="0.01" value="1"> -->
                     <input id="volume-slider" type="text" data-slider="true" data-slider-theme="volume">
                 </div>
-                <audio id="player" src=""></audio>
+                <audio id="player" src="" autoplay></audio>
                 <div class="favicon infothisstation" title="Click to get information on this station">
                 </div>
             </div>
