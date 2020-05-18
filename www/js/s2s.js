@@ -1057,7 +1057,7 @@ function get_radiobrowser_server_status(servers) {
             } else {
                 localStorage.setItem('servers', JSON.stringify(_servers));
             }
-            console.log(`servers: ${_servers}`);
+            // console.log(`servers: ${_servers}`);
         })
 }
 
