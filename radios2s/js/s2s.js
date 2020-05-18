@@ -42,7 +42,7 @@ function init() { //triggered by get_radiobrowser_base_urls() or document.ready
     stations = JSON.parse(localStorage.getItem("stations")); 
     if (jQuery.isEmptyObject(stations)){
         taffy_favorits = JSON.parse(localStorage.getItem("taffy_favorits"));
-        if (!(jQuery.isEmptyObject(taffy_favorits))){ //in LS no stations but taffy_favorits
+        if (!(jQuery.isEmptyObject(taffy_favorits))){ //in LS no stations but taffy_favorits exists
             console.log(`start migrating old taffy-data`);
             migrateTaffy(); // Migrate taffy to stations, then getStation -> getStation -> showFavorites
         } else { //no stations no taffy
@@ -69,7 +69,7 @@ function migrateTaffy() {
         urls.push(rb_url + favorit.id);
     });
     let stationsold = [];
-    Promise.all(urls.map(url => // use map() to perform a fetch and handle the response for each url
+    Promise.allSettled(urls.map(url => // use map() to perform a fetch and handle the response for each url
             fetch(url)
             .then(response => response.json())
             .then((results) => {
@@ -85,10 +85,12 @@ function migrateTaffy() {
                 console.error(`Error: ${error} `);
             })
         ))
-        .then(data => { // we have them all
+        .then(data => { // we have them all (resolved or rejected)
             localStorage.setItem('stations', JSON.stringify(stationsold));
             getStation(_settings.laststation);
             localStorage.removeItem("taffy_favorits");
+            localStorage.removeItem("laststation");
+            localStorage.removeItem("lastvolume");
         })
 }
 
@@ -279,12 +281,11 @@ function getStation(id) { //select station to play
     }
 }
 
-function setStation(results){
-    if (results.length > 0) {
-        let result = results[0];
-        console.log(`${JSON.stringify(result.url)}`);
-        var urlfavicon = result.favicon;
-        if (result.favicon) {
+function setStation(stations){
+    if (stations.length > 0) {
+        let station = stations[0];
+        var urlfavicon = station.favicon;
+        if (station.favicon) {
             $('.favicon').css({
                 "background-image": "url(" + urlfavicon + ")",
                 "display": "block"
@@ -292,11 +293,11 @@ function setStation(results){
         } else {
             $('.favicon').css("display", "none")
         }
-        _stationplaying = result;
-        let id = result.stationuuid;
+        _stationplaying = station;
+        let id = station.stationuuid;
         _settings.laststation = id;
         localStorage.setItem('settings', JSON.stringify(_settings));
-        $("#selectedstation").html(result.name + " - " + result.bitrate + " kbps");
+        $("#selectedstation").html(station.name + " - " + station.bitrate + " kbps");
         var stations = JSON.parse(localStorage.getItem('stations'));
         let rating = 0;
         if (stations) {
@@ -304,17 +305,17 @@ function setStation(results){
             rating = (objIndex > -1) ? stations[objIndex].rating : 0; //if station already rated use rating
         }
         $('#rateitfooter').rateit('value', rating)
-        console.log('urlplaying id' + ': ' + result.url + ' ' + id);
-        $("#player").attr("src", result.url);
-        var x1 = jQuery.trim(result.url).substring(0, 42).trim(this);
-        x1 = (result.url.length > x1.length) ? x1 + "..." : x1;
+        console.log(`urlplaying: ${station.url} with id: ${id}`);
+        $("#player").attr("src", station.url);
+        var x1 = jQuery.trim(station.url).substring(0, 42).trim(this);
+        x1 = (station.url.length > x1.length) ? x1 + "..." : x1;
         $(".url").html(x1);
-        updateStation(rating, result);
+        updateStation(rating, station);
         ShowFavorites(false);
         $.get("https://ipinfo.io", function (ipinfo) {
             $.post("https://radios2s.scriptel.nl/sure/savestation03.php", {
                 id: id,
-                tit: result.name,
+                tit: station.name,
                 ip: ipinfo.ip,
                 hostname: ipinfo.hostname,
                 city: ipinfo.city,
@@ -325,7 +326,7 @@ function setStation(results){
                 mod: thisdevice.model,
                 uuid: thisdevice.uuid
             }, function (result) {
-                console.log('posted to radios2s.scriptel.nl: ' + result.id);
+                // console.log('posted to radios2s.scriptel.nl: ' + result.id);
             });
         }, "jsonp");
     } else {
@@ -930,6 +931,7 @@ function detectLanguage() {
             lang = window.navigator.language.slice(0, 2);
         }
     }
+    // lang = 'en';
     _settings.language = lang;
     localStorage.setItem('settings', JSON.stringify(_settings));
     switch (lang) {
@@ -984,6 +986,7 @@ function showHtml() {
     $("#myFilter").attr("placeholder", _lg.Searchfor);
     let star = (_settings.listorder === 'stars-updated') ? 'full' : 'open';
     $("#ratingselectimg").attr('src', `./res/img/star-${star}.png`);
+    $("#ratingselect").attr('title', _lg.ratingselect);
 }
 
 const fieldSorter = (fields) => (a, b) => fields.map(o => { //sorts array of objects
@@ -1005,15 +1008,15 @@ function updateStation(rating, station) { //update (rating of) (playing) station
         objIndex = stations.findIndex((obj => obj.stationuuid == station.stationuuid));
         if (objIndex > -1) {
             stations[objIndex] = station;
-            console.log(`updated station ${rating} ${date} ${station.name}`);
+            console.log(`updated station: ${station.name}, rating: ${rating}, date: ${date}`);
         } else {
             stations.push(station);
-            console.log(`new favorite ${rating} ${date} ${station.name}`);
+            console.log(`new favorite: ${station.name}, rating: ${rating}, date: ${date}`);
         }
     } else {
         stations = [];
         stations.push(station);
-        console.log(`new localstorage, new favorite ${rating} ${date} ${station.name}`);
+        console.log(`new localstorage, new favorite: ${station.name}, rating: ${rating}, date: ${date}`);
     }
     stations = stations.sort(fieldSorter(['-rating', '-date']));
     if (stations.length > _settings.maxstations) {
@@ -1022,60 +1025,40 @@ function updateStation(rating, station) { //update (rating of) (playing) station
     localStorage.setItem('stations', JSON.stringify(stations));
 }
 
-// function updateLocal(xtr) { //strb = station on format radiobrowser.info
-//     var xtrastations = JSON.parse(localStorage.getItem('xtrastations'));
-//     if (!(xtrastations)) xtrastations = [];
-//     objIndex = xtrastations.findIndex((obj => obj.tit == xtr.tit));
-//     if (objIndex > -1) {
-//         xtrastations[objIndex] = xtr;
-//     } else { //new station
-//         xtrastations.push(xtr);
-//     }
-//     localStorage.setItem('xtrastations', JSON.stringify(xtrastations));
-// }
-
 function get_radiobrowser_base_urls() {
     $.post("http://all.api.radio-browser.info/json/servers", //get all servers
         function (results) {
             if (results.length > 0) {
                 _servers = results.map(x => "https://" + x.name);
-                console.log(`${_servers}`);
                 get_radiobrowser_server_status(_servers);
             }
         });
 }
 
 function get_radiobrowser_server_status(servers) {
-    let _servers = []; //get first 3 working stations
-    $.when(
-        $.post(servers[0] + '/json/stats', function (results) {
-            if (results.status === 'OK') {
-                _servers.push(servers[0]);
-                // localStorage.setItem('servers', JSON.stringify(_servers));
+    let _servers = [];
+    Promise.race(servers.map(server => // use map() to perform a fetch and handle the response for each server
+            fetch(server + '/json/stats')
+            .then(response => response.json())
+            .then((results) => {
+                if (results.status === 'OK') {
+                    _servers.push(server);
+                }
+            })
+            .catch(error => {
+                console.error(`Error: ${error} `);
+            })
+        ))
+        .then(data => { //the first server with status OK is stored in _servers
+            servers = JSON.parse(localStorage.getItem("servers"));
+            if ((jQuery.isEmptyObject(servers))) { //in this case init() hasn't yet started
+                localStorage.setItem('servers', JSON.stringify(_servers));
+                init();
+            } else {
+                localStorage.setItem('servers', JSON.stringify(_servers));
             }
-        }),
-        $.post(servers[1] + '/json/stats', function (results) {
-            if (results.status === 'OK') {
-                _servers.push(servers[1]);
-                // localStorage.setItem('servers', JSON.stringify(_servers));
-            }
-        }),
-        $.post(servers[2] + '/json/stats', function (results) {
-            if (results.status === 'OK') {
-                _servers.push(servers[2]);
-                // localStorage.setItem('servers', JSON.stringify(_servers));
-            }
+            console.log(`servers: ${_servers}`);
         })
-    ).then(function () {
-        servers = JSON.parse(localStorage.getItem("servers"));
-        if ((jQuery.isEmptyObject(servers))){ //in this case init() hasn't yet started
-            localStorage.setItem('servers', JSON.stringify(_servers));
-            init();
-        } else {
-            console.log(`${JSON.stringify(_servers)}`);
-            localStorage.setItem('servers', JSON.stringify(_servers));
-        }
-    })
 }
 
 function test_makeTaffy() { //run once in init() to make taffy_favorits for testing
@@ -1089,7 +1072,6 @@ var testjson = [{id: "85745", tit: "NPO Radio 4 - Concerten", rat: 5},
     {id: "111183", tit: "Radio Swiss Classic", rat: 3},
     {id: "49601", tit: "NPO Radio 4", rat: 2},
     {id: "86716", tit: "24/7 Bach", rat: 1},
-    {id: "99066", tit: "Boston Baroque Radio", rat: 1},
     {id: "101487", tit: "Concertzender Geen dag zonder Bach", rat: 2},
     {id: "94556", tit: "Radio Symphony", rat: 2},
     {id: "89644", tit: "BNR Nieuwsradio", rat: 1},
