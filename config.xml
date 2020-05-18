@@ -1,19 +1,21 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.scriptel.simplyradio" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
+<widget id="com.scriptel.simplyradio" version="1.0.0" 
+    xmlns="http://www.w3.org/ns/widgets" 
+    xmlns:gap="http://phonegap.com/ns/1.0">
     <name>RadioS2S</name>
     <description>
 		Radio Station to Station Player
-	</description>
+    </description>
     <author email="fsch0203@gmail.com" href="http://radios2s.scriptel.nl">
 		Frans Schrijver
-	</author>
+    </author>
     <preference name="phonegap-version" value="cli-7.1.0" />
     <preference name="permissions" value="none" />
     <platform name="android" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
-	<icon src="www/s2s-icon-512.png" />
-	<splash src="www/splash.png" />
+    <icon src="www/s2s-icon-512.png" />
+    <splash src="www/s2s-icon-512.png" />
     <engine name="browser" spec="~4.1.0" />
     <plugin name="cordova.plugins.diagnostic" source="npm" />
     <plugin name="cordova-plugin-chromecast" spec="https://github.com/nbabanov/cordova-chromecast.git" />

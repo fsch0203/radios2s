@@ -4,9 +4,13 @@
     "manifest_version": 2,
     "description": "Free Internet Radio Player",
     "icons": {
+        "16": "s2s-icon-16.png",
         "32": "s2s-icon-32.png",
         "48": "s2s-icon-48.png",
-        "128": "s2s-icon-128.png"
+        "64": "s2s-icon-64.png",
+        "128": "s2s-icon-128.png",
+        "256": "s2s-icon-256.png",
+        "512": "s2s-icon-512.png"
     },
     "background": {
         "scripts": ["js/background.js"]
