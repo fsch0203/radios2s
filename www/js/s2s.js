@@ -57,8 +57,9 @@ function init() { //triggered by get_radiobrowser_base_urls() or document.ready
     }
     var vol = _settings.lastvolume;
     setVolume(vol);
-    vol = Math.pow(vol, 1 / 3);
-    $("#volume-slider").simpleSlider("setValue", vol);
+    vol = 100 * Math.pow(vol, 1 / 2);
+    // $("#volume-slider").simpleSlider("setValue", vol);
+    $("#volume-slider").val(vol);
 }
 
 function migrateTaffy() {
@@ -712,9 +713,16 @@ $(document).ready(function () {
     $("#favorites").on('click', function () {
         ShowFavorites(true);
     });
-    $("#volume-slider").bind("slider:changed", function (event, data) {
-        let vol = Math.pow(data.ratio, 3); //better scaling for volume
+    // $("#volume-slider").bind("slider:changed", function (event, data) {
+    //     let vol = Math.pow(data.ratio, 3); //better scaling for volume
+    //     setVolume(vol); // The value as a ratio of the slider (between 0 and 1)
+    // });
+    $(document).on('input change', '#volume-slider', function() {
+        // $('#slider_value').html( $(this).val() );
+        let vol = $(this).val() / 100;
+        vol = Math.pow(vol, 2); //better scaling for volume
         setVolume(vol); // The value as a ratio of the slider (between 0 and 1)
+        // console.log(`${$(this).val()}`);
     });
     $("#thumb-open").on('click', function () {
         var id = $(this).closest('tr').prev().attr('id');
