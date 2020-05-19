@@ -18,7 +18,7 @@ var _servers = []; //available radio-browser servers
 var queryLimit = 200;
 var queryStart = 0; //start record in query
 var player;
-var castconnected = "unavailable";
+// var castconnected = "unavailable";
 var _stationplaying; //object
 var thisdevice = {
     model: "",
@@ -517,14 +517,13 @@ $(window).on("load", function () {
 
 function onDeviceReady() { //Only relevant for android app. Cordova's device APIs have loaded and are ready to access
     console.log('onDeviceReady triggered');
-    setLanguage(); //get localstorage
     detectLanguage(); //check device globalization
-    var loadCastInterval = setInterval(function () {
-        if (chrome.cast.isAvailable) {
-            clearInterval(loadCastInterval);
-            initializeCastApi();
-        } else {}
-    }, 1000);
+    // var loadCastInterval = setInterval(function () {
+    //     if (chrome.cast.isAvailable) {
+    //         clearInterval(loadCastInterval);
+    //         initializeCastApi();
+    //     } else {}
+    // }, 1000);
     thisdevice.model = device.model; //users device
     thisdevice.uuid = device.uuid; //unique id of device
 }

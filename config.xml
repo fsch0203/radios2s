@@ -9,7 +9,11 @@
     <author email="fsch0203@gmail.com" href="http://radios2s.scriptel.nl">
 		Frans Schrijver
     </author>
+    <platform name="android" />
+    <plugin name="cordova-plugin-whitelist" spec="1" />
     <access origin="*"/>
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
     <icon src="www/s2s-icon-512.png" />
     <splash src="www/s2s-icon-512.png" />
 </widget>
