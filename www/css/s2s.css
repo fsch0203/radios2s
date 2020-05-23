@@ -72,6 +72,7 @@ body{
  */
 .rateit{
     width: max-content;
+    /* cursor: pointer !important; */
 }
 
 .stars {
@@ -233,8 +234,9 @@ body{
 
 #volume_control {
   float: left;
-  position: absolute;
-  margin-left: 25%;
+  /* position: absolute;
+  margin-left: 25%; */
+  /* width: 100%; */
 }
 
 #playpause{
@@ -450,6 +452,7 @@ input[type=range] {
   -webkit-appearance: none;
   vertical-align: top;
   margin-top: 15px;
+  width: 35vw;
 }
 
 input[type=range]:focus {
@@ -459,24 +462,25 @@ input[type=range]:focus {
 input[type=range]::-webkit-slider-runnable-track {
   height: 9.9px;
   cursor: pointer;
-  box-shadow: 1px 1px 1px #ddd, 0px 0px 1px #0d0d0d;
+  box-shadow: 0px 1px 0px #ddd, 0px 0px 1px #ddd;
   background: #000000;
-  border-radius: 1.3px;
-  border: 0px solid #010101;
 }
 
 input[type=range]::-webkit-slider-thumb {
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #ddd;
-  border: 6px solid rgba(0, 0, 0, 0.48);
-  height: 31px;
-  width: 20px;
-  border-radius: 10px;
-  background: #ffffff;
-  cursor: pointer;
-  -webkit-appearance: none;
-  margin-top: -10.55px;
+    box-shadow: 1px 1px 2px #000000, 0px 0px 3px #ddd;
+    height: 22px;
+    width: 22px;
+    border-radius: 50%;
+    background-color: #aaa;
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(184, 184, 184, .99)20px,
+      rgba(200, 200, 210, .99)30px
+    );
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -6px;
 }
-
 
 #play, #pause, .favicon, .w3-select{
     cursor: pointer;

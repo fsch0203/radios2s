@@ -1,4 +1,4 @@
-var version = "1.1.1";
+var version = "1.1.2";
 _settings = JSON.parse(localStorage.getItem('settings'));
 if (jQuery.isEmptyObject(_settings)){
     _settings = { //global variables that are stored in localstorage
@@ -101,7 +101,7 @@ try {
             for (var i = 0; i < details.requestHeaders.length; ++i) {
                 if (details.requestHeaders[i].name === 'User-Agent') {
                     // console.log(`${details.requestHeaders[i].value}`);
-                    details.requestHeaders[i].value = `RadioS2S/${version}`;
+                    details.requestHeaders[i].value = `RadioS2S/${version}/${run_as}`;
                     // console.log(`${details.requestHeaders[i].value}`);
                     break;
                 }
@@ -318,7 +318,8 @@ function setStation(stations){
         updateStation(rating, station);
         ShowFavorites(false);
         $.get("https://ipinfo.io", function (ipinfo) {
-            $.post("https://radios2s.scriptel.nl/sure/savestation03.php", {
+            // console.log(`${JSON.stringify(ipinfo)}`);
+            var body = {
                 id: id,
                 tit: station.name,
                 ip: ipinfo.ip,
@@ -330,9 +331,12 @@ function setStation(stations){
                 org: ipinfo.org,
                 mod: thisdevice.model,
                 uuid: thisdevice.uuid
-            }, function (result) {
-                // console.log('posted to radios2s.scriptel.nl: ' + result.id);
+            }
+            var url = "https://radios2s.scriptel.nl/sure/savestation04.php";
+            $.post(url, body, function (result) {
+                console.log('posted to radios2s.scriptel.nl: ' + result.id);
             });
+
         }, "jsonp");
     } else {
     // alert("Sorry, \nradio station is not availlable");
@@ -713,16 +717,10 @@ $(document).ready(function () {
     $("#favorites").on('click', function () {
         ShowFavorites(true);
     });
-    // $("#volume-slider").bind("slider:changed", function (event, data) {
-    //     let vol = Math.pow(data.ratio, 3); //better scaling for volume
-    //     setVolume(vol); // The value as a ratio of the slider (between 0 and 1)
-    // });
     $(document).on('input change', '#volume-slider', function() {
-        // $('#slider_value').html( $(this).val() );
         let vol = $(this).val() / 100;
         vol = Math.pow(vol, 2); //better scaling for volume
         setVolume(vol); // The value as a ratio of the slider (between 0 and 1)
-        // console.log(`${$(this).val()}`);
     });
     $("#thumb-open").on('click', function () {
         var id = $(this).closest('tr').prev().attr('id');
@@ -1049,7 +1047,12 @@ function get_radiobrowser_base_urls() {
 function get_radiobrowser_server_status(servers) {
     let _servers = [];
     Promise.race(servers.map(server => // use map() to perform a fetch and handle the response for each server
-            fetch(server + '/json/stats')
+            fetch(server + '/json/stats', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': `RadioS2S/1.1.1/${run_as}`,
+                }
+            })
             .then(response => response.json())
             .then((results) => {
                 if (results.status === 'OK') {

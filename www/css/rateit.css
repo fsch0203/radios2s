@@ -49,6 +49,7 @@
             .rateit .rateit-hover {
                 background: url(/res/img/star.gif) left -32px;
                 color: rgb(239, 107, 34);
+                cursor: pointer;
             }
 
             .rateit .rateit-hover-rtl {
@@ -84,6 +85,7 @@
                 outline: none;
                 border: none;
                 padding: 0;
+                cursor: pointer;
             }
 
             .rateit .rateit-reset span {
@@ -112,7 +114,7 @@
     .rateit-font .rateit-range > div, .rateit-font .rateit-range > span {
         background: none;
         overflow: hidden;
-        cursor: default;
+        cursor: pointer;
     }
 
 .rateit.rateit-font .rateit-reset {
@@ -124,6 +126,7 @@
     background: gray;
     border-radius: 50%;
     position: relative;
+    cursor: pointer;
 }
 
     .rateit.rateit-font .rateit-reset span {
