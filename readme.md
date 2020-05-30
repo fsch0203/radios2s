@@ -20,6 +20,10 @@ Based on config.xml the android apk is build in build.phonegap.com. The chrome e
 ## Change log
 
 #### Version 1.1.1
+- Make volume-slider draggable in mobile device
+- Added country flag in favorites list
+
+#### Version 1.1.1 2020-05-18
 - Removed chromecast
 - Comply to new api of radio-browser
 - Migration utility to restore old favorites lists

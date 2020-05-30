@@ -70,6 +70,10 @@ body{
   text-align: right;
 }
  */
+.countryflag{
+    padding: 0px 8px 0px 0px;
+}
+
 .rateit{
     width: max-content;
     /* cursor: pointer !important; */
@@ -337,7 +341,7 @@ table td {
 
 table#activelist td, table#editlist td {
     cursor: pointer;
-    padding: 0px 8px 8px 8px;
+    padding: 4px 8px 4px 8px;
 }
 
 tr:active {

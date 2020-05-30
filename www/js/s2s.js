@@ -280,67 +280,64 @@ function getStation(id) { //select station to play
         if (_servers){
             $.post(_servers[0] + "/json/stations/byuuid/" + id, //get playable station url
                 function (results) {
-                    setStation(results);
+                    if (results.length > 0) {
+                        let station = results[0];
+                        setStation(station);
+                    }
             });
         }
     }
 }
 
-function setStation(stations){
-    if (stations.length > 0) {
-        let station = stations[0];
-        var urlfavicon = station.favicon;
-        if (station.favicon) {
-            $('.favicon').css({
-                "background-image": "url(" + urlfavicon + ")",
-                "display": "block"
-            })
-        } else {
-            $('.favicon').css("display", "none")
-        }
-        _stationplaying = station;
-        let id = station.stationuuid;
-        _settings.laststation = id;
-        localStorage.setItem('settings', JSON.stringify(_settings));
-        $("#selectedstation").html(station.name + " - " + station.bitrate + " kbps");
-        var stations = JSON.parse(localStorage.getItem('stations'));
-        let rating = 0;
-        if (stations) {
-            objIndex = stations.findIndex((obj => obj.stationuuid == id));
-            rating = (objIndex > -1) ? stations[objIndex].rating : 0; //if station already rated use rating
-        }
-        $('#rateitfooter').rateit('value', rating)
-        console.log(`urlplaying: ${station.url} with id: ${id}`);
-        $("#player").attr("src", station.url);
-        var x1 = jQuery.trim(station.url).substring(0, 42).trim(this);
-        x1 = (station.url.length > x1.length) ? x1 + "..." : x1;
-        $(".url").html(x1);
-        updateStation(rating, station);
-        ShowFavorites(false);
-        $.get("https://ipinfo.io", function (ipinfo) {
-            // console.log(`${JSON.stringify(ipinfo)}`);
-            var body = {
-                id: id,
-                tit: station.name,
-                ip: ipinfo.ip,
-                hostname: ipinfo.hostname,
-                city: ipinfo.city,
-                region: ipinfo.region,
-                country: ipinfo.country,
-                loc: ipinfo.loc,
-                org: ipinfo.org,
-                mod: thisdevice.model,
-                uuid: thisdevice.uuid
-            }
-            var url = "https://radios2s.scriptel.nl/sure/savestation04.php";
-            $.post(url, body, function (result) {
-                console.log('posted to radios2s.scriptel.nl: ' + result.id);
-            });
-
-        }, "jsonp");
+function setStation(station) {
+    var urlfavicon = station.favicon;
+    if (station.favicon) {
+        $('.favicon').css({
+            "background-image": "url(" + urlfavicon + ")",
+            "display": "block"
+        })
     } else {
-    // alert("Sorry, \nradio station is not availlable");
+        $('.favicon').css("display", "none")
     }
+    _stationplaying = station;
+    let id = station.stationuuid;
+    _settings.laststation = id;
+    localStorage.setItem('settings', JSON.stringify(_settings));
+    $("#selectedstation").html(station.name + " - " + station.bitrate + " kbps");
+    var stations = JSON.parse(localStorage.getItem('stations'));
+    let rating = 0;
+    if (stations) {
+        objIndex = stations.findIndex((obj => obj.stationuuid == id));
+        rating = (objIndex > -1) ? stations[objIndex].rating : 0; //if station already rated use rating
+    }
+    $('#rateitfooter').rateit('value', rating)
+    console.log(`urlplaying: ${station.url} with id: ${id}`);
+    $("#player").attr("src", station.url);
+    var x1 = jQuery.trim(station.url).substring(0, 42).trim(this);
+    x1 = (station.url.length > x1.length) ? x1 + "..." : x1;
+    $(".url").html(x1);
+    updateStation(rating, station);
+    ShowFavorites(false);
+    $.get("https://ipinfo.io", function (ipinfo) {
+        // console.log(`${JSON.stringify(ipinfo)}`);
+        var body = {
+            id: id,
+            tit: station.name,
+            ip: ipinfo.ip,
+            hostname: ipinfo.hostname,
+            city: ipinfo.city,
+            region: ipinfo.region,
+            country: ipinfo.country,
+            loc: ipinfo.loc,
+            org: ipinfo.org,
+            mod: thisdevice.model,
+            uuid: thisdevice.uuid
+        }
+        var url = "https://radios2s.scriptel.nl/sure/savestation04.php";
+        $.post(url, body, function (result) {
+            console.log('posted to radios2s.scriptel.nl: ' + result.id);
+        });
+    }, "jsonp");
 }
 
 
@@ -472,11 +469,20 @@ function ShowFavorites(warning) { //if warning is true: message if there are no 
             stations = stations.sort(fieldSorter(['-rating', '-date']));
         }
         stations.forEach((station) => {
+            var flag = '';
+            if (station.countrycode) {
+                flag = `https://www.countryflags.io/${station.countrycode}/flat/16.png`;
+            } else if (station.country) {
+                let objIndex = countrynames.findIndex((obj => obj.name.toLowerCase().includes(station.country.toLowerCase())));
+                flag = `https://www.countryflags.io/${countrynames[objIndex].code}/flat/16.png`;
+            } else {
+                flag = "./res/img/pe.png";
+            }
             var favicon = (station.favicon) ? station.favicon : "./res/img/info-128x128.png";
             list += `<tr id=${station.stationuuid}><td class="td-left"></td><td class="td-center">
-            <span class="label-small">
-            <img src="./res/img/${station.rating}star.png" width="60">
-            </span><span class="label-small" style="float:right">${date2LocalString(station.date)}</span><br>
+            <span class="countryflag"><img src="${flag}"></span>
+            <span class="label-small"><img src="./res/img/${station.rating}star.png" width="60"></span>
+            <span class="label-small" style="float:right">${date2LocalString(station.date)}</span><br>
             <span>${station.name}</span></td>
             <td class="td-right"><span class="edit-icon"><img class="stationfavicon" src=${favicon} width="40""></span></td>
             </tr>`;
@@ -1046,7 +1052,7 @@ function get_radiobrowser_base_urls() {
 
 function get_radiobrowser_server_status(servers) {
     let _servers = [];
-    Promise.race(servers.map(server => // use map() to perform a fetch and handle the response for each server
+    Promise.all(servers.map(server => // use map() to perform a fetch and handle the response for each server
             fetch(server + '/json/stats', {
                 headers: {
                     'Content-Type': 'application/json',
