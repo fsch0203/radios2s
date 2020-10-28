@@ -1,4 +1,4 @@
-var version = "1.1.2";
+var version = "1.1.3";
 _settings = JSON.parse(localStorage.getItem('settings'));
 if (jQuery.isEmptyObject(_settings)){
     _settings = { //global variables that are stored in localstorage
@@ -95,28 +95,28 @@ function migrateTaffy() {
         })
 }
 
-try {
-    chrome.webRequest.onBeforeSendHeaders.addListener(
-        function (details) {
-            for (var i = 0; i < details.requestHeaders.length; ++i) {
-                if (details.requestHeaders[i].name === 'User-Agent') {
-                    // console.log(`${details.requestHeaders[i].value}`);
-                    details.requestHeaders[i].value = `RadioS2S/${version}/${run_as}`;
-                    // console.log(`${details.requestHeaders[i].value}`);
-                    break;
-                }
-            }
-            return {
-                requestHeaders: details.requestHeaders
-            };
-        }, {
-            urls: ['<all_urls>']
-        },
-        ['blocking', 'requestHeaders']
-    );
-} catch (err) {
-    //run_as = 'web';
-}
+// try {
+//     chrome.webRequest.onBeforeSendHeaders.addListener(
+//         function (details) {
+//             for (var i = 0; i < details.requestHeaders.length; ++i) {
+//                 if (details.requestHeaders[i].name === 'User-Agent') {
+//                     // console.log(`${details.requestHeaders[i].value}`);
+//                     // details.requestHeaders[i].value = `RadioS2S/${version}/${run_as}`;
+//                     // console.log(`${details.requestHeaders[i].value}`);
+//                     break;
+//                 }
+//             }
+//             return {
+//                 requestHeaders: details.requestHeaders
+//             };
+//         }, {
+//             urls: ['<all_urls>']
+//         },
+//         ['blocking', 'requestHeaders']
+//     );
+// } catch (err) {
+//     //run_as = 'web';
+// }
 
 function w3_open() { //sidebar open, overlay for dark background
     $("#mySidebar").show();
@@ -322,6 +322,7 @@ function setStation(station) {
         // console.log(`${JSON.stringify(ipinfo)}`);
         var body = {
             id: id,
+            version: version,
             tit: station.name,
             ip: ipinfo.ip,
             hostname: ipinfo.hostname,
@@ -333,7 +334,7 @@ function setStation(station) {
             mod: thisdevice.model,
             uuid: thisdevice.uuid
         }
-        var url = "https://radios2s.scriptel.nl/sure/savestation04.php";
+        var url = "https://radios2s.scriptel.nl/sure/savestation05.php";
         $.post(url, body, function (result) {
             console.log('posted to radios2s.scriptel.nl: ' + result.id);
         });
@@ -382,11 +383,11 @@ function Select() {
     $.post(_servers[0] + "/json/stations/search", param, //get stations
         function (results) {
             var list = '';
-            var n = 0;
             for (i in results) {
+                var favicon = (results[i].favicon) ? results[i].favicon : "./res/img/info-128x128.png";
                 list += `<tr id=${results[i].stationuuid}><td class="td-left"></td><td class="td-center">
             <span>${results[i].name}</span></td>
-            <td class="td-right"><span class="edit-icon"><img src="./res/img/info-128x128.png" width="30"></span></td>
+            <td class="td-right"><span class="edit-icon"><img src=${favicon} width="30"></span></td>
             </tr>`;
             }
             if (queryStart === 0) {
@@ -395,6 +396,7 @@ function Select() {
                 $('#activelist').append(list);
             }
         });
+          
     // $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');
     if (cou === '' && sty === '' && lan === '') {} else if (cou !== '' && sty === '' && lan === '') {
         // $('#cont-cou, #cou').removeClass('fs-black').addClass('fs-dark-gray');
@@ -1055,8 +1057,8 @@ function get_radiobrowser_server_status(servers) {
     Promise.all(servers.map(server => // use map() to perform a fetch and handle the response for each server
             fetch(server + '/json/stats', {
                 headers: {
-                    'Content-Type': 'application/json',
-                    'User-Agent': `RadioS2S/1.1.1/${run_as}`,
+                    'Content-Type': 'application/json'
+                    // 'User-Agent': `RadioS2S/1.1.1/${run_as}`,
                 }
             })
             .then(response => response.json())
