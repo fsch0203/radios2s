@@ -1,6 +1,6 @@
 # RadioS2S
 
-RadioS2S is an android application and chrome extension with which you can listen to every radio station that is available on the web. You can already choose from more than 25.000 stations, but you can add your own if one is missing. Every weblink that is playable in a webbrowser (HTML5) can be added. With the quick search option it's very easy to find you station.
+RadioS2S is an android application and chromium extension with which you can listen to every radio station that is available on the web. You can already choose from more than 25.000 stations, but you can add your own if one is missing. Every weblink that is playable in a webbrowser (HTML5) can be added. With the quick search option it's very easy to find you station.
 
 You can find the Android app in the [Google Playstore](https://play.google.com/store/apps/details?id=com.scriptel.simplyradio). And the Chrome extension in the [Chrome Web Store](https://chrome.google.com/webstore/detail/radio-station-to-station/bjgdhmgldpmbfokgehkdkddahldjjmnc).
 
@@ -9,24 +9,22 @@ I have tried to make the user interface as simple as possible:
 * quick search by typing in (part of the) the name of the station
 * give one or more stars if you want to save a station as a favoritee
 
-With a chromecast (audio) device connected you can now listen to every station on your home music system.
-
 RadioS2S is working together with Community Radio Browser, a wiki-like directory of internet radio stations from around the world.
 
 ## Usage
 
-Based on config.xml the android apk is build in build.phonegap.com. The chrome extension is configured in manifest.json.
+Based on config.xml the android apk is build in build.phonegap.com. The chromium extension is configured in manifest.json.
 
 ## Change log
 
-#### Version 1.1.3
+#### Version 1.1.3 (2020-10-30)
 - Minor bugs
 
-#### Version 1.1.1
+#### Version 1.1.2 (2020-05-28)
 - Make volume-slider draggable in mobile device
 - Added country flag in favorites list
 
-#### Version 1.1.1 2020-05-18
+#### Version 1.1.1 (2020-05-18)
 - Removed chromecast
 - Comply to new api of radio-browser
 - Migration utility to restore old favorites lists

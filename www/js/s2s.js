@@ -18,7 +18,6 @@ var _servers = []; //available radio-browser servers
 var queryLimit = 200;
 var queryStart = 0; //start record in query
 var player;
-// var castconnected = "unavailable";
 var _stationplaying; //object
 var thisdevice = {
     model: "",
@@ -58,7 +57,6 @@ function init() { //triggered by get_radiobrowser_base_urls() or document.ready
     var vol = _settings.lastvolume;
     setVolume(vol);
     vol = 100 * Math.pow(vol, 1 / 2);
-    // $("#volume-slider").simpleSlider("setValue", vol);
     $("#volume-slider").val(vol);
 }
 
@@ -264,7 +262,6 @@ function setVolume(volume) {
     player.volume = volume;
     _settings.lastvolume = volume;
     localStorage.setItem('settings', JSON.stringify(_settings));
-    // localStorage.setItem("lastvolume", volume);
 }
 
 function getStation(id) { //select station to play
@@ -397,39 +394,31 @@ function Select() {
             }
         });
           
-    // $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-dark-gray').addClass('fs-black');
     if (cou === '' && sty === '' && lan === '') {} else if (cou !== '' && sty === '' && lan === '') {
-        // $('#cont-cou, #cou').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         $("#cou").val(cou_nr); //show selected country in header
     } else if (cou === '' && sty !== '' && lan === '') {
-        // $('#cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(sty_nr.toString(), "selstyles");
         $("#sty").val(Number(sty_nr));
     } else if (cou === '' && sty === '' && lan !== '') {
-        // $('#cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(lan_nr.toString(), "sellanguages");
         $("#lan").val(lan_nr);
     } else if (cou !== '' && sty !== '' && lan === '') {
-        // $('#cont-cou, #cou, #cont-sty, #sty').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         storeSelection(sty_nr.toString(), "selstyles");
         $("#cou").val(cou_nr);
         $("#sty").val(sty_nr);
     } else if (cou !== '' && sty === '' && lan !== '') {
-        // $('#cont-cou, #cou, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         storeSelection(lan_nr.toString(), "sellanguages");
         $("#cou").val(cou_nr);
         $("#lan").val(lan_nr);
     } else if (cou === '' && sty !== '' && lan !== '') {
-        // $('#cont-sty, #sty, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(sty_nr.toString(), "selstyles");
         storeSelection(lan_nr.toString(), "sellanguages");
         $("#sty").val(sty_nr);
         $("#lan").val(lan_nr);
     } else if (cou !== '' && sty !== '' && lan !== '') {
-        // $('#cont-cou, #cou, #cont-sty, #sty, #cont-lan, #lan').removeClass('fs-black').addClass('fs-dark-gray');
         storeSelection(cou_nr.toString(), "selcountries");
         storeSelection(sty_nr.toString(), "selstyles");
         storeSelection(lan_nr.toString(), "sellanguages");
@@ -535,12 +524,6 @@ $(window).on("load", function () {
 function onDeviceReady() { //Only relevant for android app. Cordova's device APIs have loaded and are ready to access
     console.log('onDeviceReady triggered');
     detectLanguage(); //check device globalization
-    // var loadCastInterval = setInterval(function () {
-    //     if (chrome.cast.isAvailable) {
-    //         clearInterval(loadCastInterval);
-    //         initializeCastApi();
-    //     } else {}
-    // }, 1000);
     thisdevice.model = device.model; //users device
     thisdevice.uuid = device.uuid; //unique id of device
 }
