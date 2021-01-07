@@ -1,6 +1,6 @@
-var version = "1.1.3";
+var version = "1.1.4";
 _settings = JSON.parse(localStorage.getItem('settings'));
-if (jQuery.isEmptyObject(_settings)){
+if (jQuery.isEmptyObject(_settings)) {
     _settings = { //global variables that are stored in localstorage
         screenx: 1300, //position window
         screeny: 100,
@@ -37,11 +37,11 @@ console.log('run_as' + ': ' + run_as);
 
 function init() { //triggered by get_radiobrowser_base_urls() or document.ready
     // test_makeTaffy(); //only needed for testing migration
-    _settings = JSON.parse(localStorage.getItem("settings"));//always exist
-    stations = JSON.parse(localStorage.getItem("stations")); 
-    if (jQuery.isEmptyObject(stations)){
+    _settings = JSON.parse(localStorage.getItem("settings")); //always exist
+    stations = JSON.parse(localStorage.getItem("stations"));
+    if (jQuery.isEmptyObject(stations)) {
         taffy_favorits = JSON.parse(localStorage.getItem("taffy_favorits"));
-        if (!(jQuery.isEmptyObject(taffy_favorits))){ //in LS no stations but taffy_favorits exists
+        if (!(jQuery.isEmptyObject(taffy_favorits))) { //in LS no stations but taffy_favorits exists
             console.log(`start migrating old taffy-data`);
             migrateTaffy(); // Migrate taffy to stations, then getStation -> getStation -> showFavorites
         } else { //no stations no taffy
@@ -267,21 +267,21 @@ function setVolume(volume) {
 function getStation(id) { //select station to play
     _servers = JSON.parse(localStorage.getItem('servers'));
     saveWindowPosition();
-    var stations =  JSON.parse(localStorage.getItem('stations'));
-    if (id == 0 && jQuery.isEmptyObject(stations)){
+    var stations = JSON.parse(localStorage.getItem('stations'));
+    if (id == 0 && jQuery.isEmptyObject(stations)) {
         ShowFavorites(true);
     } else {
-        if (id == 0){
+        if (id == 0) {
             id = stations[0].stationuuid;
         }
-        if (_servers){
+        if (_servers) {
             $.post(_servers[0] + "/json/stations/byuuid/" + id, //get playable station url
                 function (results) {
                     if (results.length > 0) {
                         let station = results[0];
                         setStation(station);
                     }
-            });
+                });
         }
     }
 }
@@ -393,7 +393,7 @@ function Select() {
                 $('#activelist').append(list);
             }
         });
-          
+
     if (cou === '' && sty === '' && lan === '') {} else if (cou !== '' && sty === '' && lan === '') {
         storeSelection(cou_nr.toString(), "selcountries");
         $("#cou").val(cou_nr); //show selected country in header
@@ -622,7 +622,7 @@ $(document).ready(function () {
     FillSelectOptions();
     showHtml();
     servers = JSON.parse(localStorage.getItem("servers"));
-    if (!(jQuery.isEmptyObject(servers))){ //start with servers from LS
+    if (!(jQuery.isEmptyObject(servers))) { //start with servers from LS
         init();
     }
     get_radiobrowser_base_urls(); //get working servers and then (if necessary) getStation with laststation
@@ -708,7 +708,7 @@ $(document).ready(function () {
     $("#favorites").on('click', function () {
         ShowFavorites(true);
     });
-    $(document).on('input change', '#volume-slider', function() {
+    $(document).on('input change', '#volume-slider', function () {
         let vol = $(this).val() / 100;
         vol = Math.pow(vol, 2); //better scaling for volume
         setVolume(vol); // The value as a ratio of the slider (between 0 and 1)
@@ -734,9 +734,9 @@ $(document).ready(function () {
     $("#inf-removestation").on('click', function () {
         var id = $(this).closest('tr').prev().prev().attr('id');
         console.log(`remove station ${id}`);
-        var stations = JSON.parse(localStorage.getItem("stations"));    
+        var stations = JSON.parse(localStorage.getItem("stations"));
         objIndex = stations.findIndex((obj => obj.stationuuid == id));
-        stations.splice(objIndex,1);
+        stations.splice(objIndex, 1);
         localStorage.setItem('stations', JSON.stringify(stations));
         $("#infoplayingstation").hide();
         ShowFavorites();
@@ -1071,17 +1071,74 @@ function test_makeTaffy() { //run once in init() to make taffy_favorits for test
     favorits.store('favorits');
 }
 
-var testjson = [{id: "85745", tit: "NPO Radio 4 - Concerten", rat: 5},
-    {id: "66458", tit: "Klara Continuo", rat: 5},
-    {id: "64095", tit: "BBC Radio 3", rat: 4},
-    {id: "111183", tit: "Radio Swiss Classic", rat: 3},
-    {id: "49601", tit: "NPO Radio 4", rat: 2},
-    {id: "86716", tit: "24/7 Bach", rat: 1},
-    {id: "101487", tit: "Concertzender Geen dag zonder Bach", rat: 2},
-    {id: "94556", tit: "Radio Symphony", rat: 2},
-    {id: "89644", tit: "BNR Nieuwsradio", rat: 1},
-    {id: "85586", tit: "NPO Radio 1", rat: 1},
-    {id: "11957", tit: "Venice Classic Radio", rat: 3},
-    {id: "126840", tit: "Concertzender Klassiek", rat: 3},
-    {id: "101494", tit: "Concertzender Gaudeamus", rat: 2},
-    {id: "101488", tit: "Concertzender Klassieke Muziek", rat: 2}];
+var testjson = [{
+        id: "85745",
+        tit: "NPO Radio 4 - Concerten",
+        rat: 5
+    },
+    {
+        id: "66458",
+        tit: "Klara Continuo",
+        rat: 5
+    },
+    {
+        id: "64095",
+        tit: "BBC Radio 3",
+        rat: 4
+    },
+    {
+        id: "111183",
+        tit: "Radio Swiss Classic",
+        rat: 3
+    },
+    {
+        id: "49601",
+        tit: "NPO Radio 4",
+        rat: 2
+    },
+    {
+        id: "86716",
+        tit: "24/7 Bach",
+        rat: 1
+    },
+    {
+        id: "101487",
+        tit: "Concertzender Geen dag zonder Bach",
+        rat: 2
+    },
+    {
+        id: "94556",
+        tit: "Radio Symphony",
+        rat: 2
+    },
+    {
+        id: "89644",
+        tit: "BNR Nieuwsradio",
+        rat: 1
+    },
+    {
+        id: "85586",
+        tit: "NPO Radio 1",
+        rat: 1
+    },
+    {
+        id: "11957",
+        tit: "Venice Classic Radio",
+        rat: 3
+    },
+    {
+        id: "126840",
+        tit: "Concertzender Klassiek",
+        rat: 3
+    },
+    {
+        id: "101494",
+        tit: "Concertzender Gaudeamus",
+        rat: 2
+    },
+    {
+        id: "101488",
+        tit: "Concertzender Klassieke Muziek",
+        rat: 2
+    }
+];
