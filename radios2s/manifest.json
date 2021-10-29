@@ -1,6 +1,6 @@
 {
     "name": "Radio Station-to-Station Ext",
-    "version": "1.1.4",
+    "version": "1.2.0",
     "manifest_version": 2,
     "description": "Free Internet Radio Player",
     "icons": {
@@ -19,7 +19,7 @@
         "default_icon": "s2s-icon-128.png"
     },
     "homepage_url": "https://radios2s.scriptel.nl",
-    "content_security_policy": "script-src 'self' https://ipinfo.io; object-src 'self'",
+    "content_security_policy": "object-src 'self'",
     "permissions": [
         "http://*/*",
         "https://*/*"

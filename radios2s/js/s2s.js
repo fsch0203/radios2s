@@ -1,4 +1,4 @@
-var version = "1.1.4";
+var version = "1.2.0";
 _settings = JSON.parse(localStorage.getItem('settings'));
 if (jQuery.isEmptyObject(_settings)) {
     _settings = { //global variables that are stored in localstorage
@@ -36,17 +36,10 @@ try {
 console.log('run_as' + ': ' + run_as);
 
 function init() { //triggered by get_radiobrowser_base_urls() or document.ready
-    // test_makeTaffy(); //only needed for testing migration
     _settings = JSON.parse(localStorage.getItem("settings")); //always exist
     stations = JSON.parse(localStorage.getItem("stations"));
     if (jQuery.isEmptyObject(stations)) {
-        taffy_favorits = JSON.parse(localStorage.getItem("taffy_favorits"));
-        if (!(jQuery.isEmptyObject(taffy_favorits))) { //in LS no stations but taffy_favorits exists
-            console.log(`start migrating old taffy-data`);
-            migrateTaffy(); // Migrate taffy to stations, then getStation -> getStation -> showFavorites
-        } else { //no stations no taffy
-            ShowFavorites(true); //message that there are no favorites yet
-        }
+        ShowFavorites(true); //message that there are no favorites yet
     } else { // there are stations in LS
         getStation(_settings.laststation); //normal route
     }
@@ -59,62 +52,6 @@ function init() { //triggered by get_radiobrowser_base_urls() or document.ready
     vol = 100 * Math.pow(vol, 1 / 2);
     $("#volume-slider").val(vol);
 }
-
-function migrateTaffy() {
-    var urls = [];
-    var rb_url = 'http://www.radio-browser.info/webservice/json/stations/byid/';
-    let favorits = JSON.parse(localStorage.getItem('taffy_favorits'));
-    favorits.forEach((favorit) => { //make an array of urls to fetch
-        urls.push(rb_url + favorit.id);
-    });
-    let stationsold = [];
-    Promise.allSettled(urls.map(url => // use map() to perform a fetch and handle the response for each url
-            fetch(url)
-            .then(response => response.json())
-            .then((results) => {
-                if (results.length > 0) {
-                    let result = results[0];
-                    objIndex = favorits.findIndex((obj => obj.id == result.id));
-                    result.rating = favorits[objIndex].rat;
-                    result.date = new Date().toISOString();
-                    stationsold.push(result);
-                }
-            })
-            .catch(error => {
-                console.error(`Error: ${error} `);
-            })
-        ))
-        .then(data => { // we have them all (resolved or rejected)
-            localStorage.setItem('stations', JSON.stringify(stationsold));
-            getStation(_settings.laststation);
-            localStorage.removeItem("taffy_favorits");
-            localStorage.removeItem("laststation");
-            localStorage.removeItem("lastvolume");
-        })
-}
-
-// try {
-//     chrome.webRequest.onBeforeSendHeaders.addListener(
-//         function (details) {
-//             for (var i = 0; i < details.requestHeaders.length; ++i) {
-//                 if (details.requestHeaders[i].name === 'User-Agent') {
-//                     // console.log(`${details.requestHeaders[i].value}`);
-//                     // details.requestHeaders[i].value = `RadioS2S/${version}/${run_as}`;
-//                     // console.log(`${details.requestHeaders[i].value}`);
-//                     break;
-//                 }
-//             }
-//             return {
-//                 requestHeaders: details.requestHeaders
-//             };
-//         }, {
-//             urls: ['<all_urls>']
-//         },
-//         ['blocking', 'requestHeaders']
-//     );
-// } catch (err) {
-//     //run_as = 'web';
-// }
 
 function w3_open() { //sidebar open, overlay for dark background
     $("#mySidebar").show();
@@ -315,27 +252,6 @@ function setStation(station) {
     $(".url").html(x1);
     updateStation(rating, station);
     ShowFavorites(false);
-    $.get("https://ipinfo.io", function (ipinfo) {
-        // console.log(`${JSON.stringify(ipinfo)}`);
-        var body = {
-            id: id,
-            version: version,
-            tit: station.name,
-            ip: ipinfo.ip,
-            hostname: ipinfo.hostname,
-            city: ipinfo.city,
-            region: ipinfo.region,
-            country: ipinfo.country,
-            loc: ipinfo.loc,
-            org: ipinfo.org,
-            mod: thisdevice.model,
-            uuid: thisdevice.uuid
-        }
-        var url = "https://radios2s.scriptel.nl/sure/savestation05.php";
-        $.post(url, body, function (result) {
-            console.log('posted to radios2s.scriptel.nl: ' + result.id);
-        });
-    }, "jsonp");
 }
 
 
@@ -461,21 +377,40 @@ function ShowFavorites(warning) { //if warning is true: message if there are no 
         }
         stations.forEach((station) => {
             var flag = '';
+            // var flag2 = '';
+            var ccode = '';
             if (station.countrycode) {
-                flag = `https://www.countryflags.io/${station.countrycode}/flat/16.png`;
+                // flag = `https://www.countryflags.io/${station.countrycode}/flat/16.png`;
+                ccode = station.countrycode.toLowerCase();
             } else if (station.country) {
                 let objIndex = countrynames.findIndex((obj => obj.name.toLowerCase().includes(station.country.toLowerCase())));
-                flag = `https://www.countryflags.io/${countrynames[objIndex].code}/flat/16.png`;
+                // flag = `https://www.countryflags.io/${countrynames[objIndex].code}/flat/16.png`;
+                ccode = countrynames[objIndex].code.toLowerCase();
             } else {
-                flag = "./res/img/pe.png";
+                // flag = "./res/img/pe.png";
+                ccode = "nl";
             }
+            flag = `<picture>
+            <source
+              type="image/webp"
+              srcset="https://flagcdn.com/w40/${ccode}.webp,
+                https://flagcdn.com/w80/${ccode}.webp 2x">
+            <source
+              type="image/png"
+              srcset="https://flagcdn.com/w40/${ccode}.png,
+                https://flagcdn.com/w80/${ccode}.png 2x">
+            <img
+              src="https://flagcdn.com/w40/${ccode}.png"
+              width="16"
+              alt="South Africa">
+          </picture>`
             var favicon = (station.favicon) ? station.favicon : "./res/img/info-128x128.png";
             list += `<tr id=${station.stationuuid}><td class="td-left"></td><td class="td-center">
-            <span class="countryflag"><img src="${flag}"></span>
+            <span class="countryflag">${flag}</span>
             <span class="label-small"><img src="./res/img/${station.rating}star.png" width="60"></span>
             <span class="label-small" style="float:right">${date2LocalString(station.date)}</span><br>
             <span>${station.name}</span></td>
-            <td class="td-right"><span class="edit-icon"><img class="stationfavicon" src=${favicon} width="40""></span></td>
+            <td class="td-right"><span class="edit-icon"><img class="stationfavicon" src=${favicon} height="40""></span></td>
             </tr>`;
         });
         $('#activelist').html(list);
@@ -909,9 +844,6 @@ $(document).ready(function () {
         }
         $('#editstation').hide();
     });
-    $("#test").on('click', function () {
-        // migrateTaffy();
-    });
 });
 
 function detectLanguage() {
@@ -1066,79 +998,3 @@ function get_radiobrowser_server_status(servers) {
         })
 }
 
-function test_makeTaffy() { //run once in init() to make taffy_favorits for testing
-    var favorits = TAFFY(testjson);
-    favorits.store('favorits');
-}
-
-var testjson = [{
-        id: "85745",
-        tit: "NPO Radio 4 - Concerten",
-        rat: 5
-    },
-    {
-        id: "66458",
-        tit: "Klara Continuo",
-        rat: 5
-    },
-    {
-        id: "64095",
-        tit: "BBC Radio 3",
-        rat: 4
-    },
-    {
-        id: "111183",
-        tit: "Radio Swiss Classic",
-        rat: 3
-    },
-    {
-        id: "49601",
-        tit: "NPO Radio 4",
-        rat: 2
-    },
-    {
-        id: "86716",
-        tit: "24/7 Bach",
-        rat: 1
-    },
-    {
-        id: "101487",
-        tit: "Concertzender Geen dag zonder Bach",
-        rat: 2
-    },
-    {
-        id: "94556",
-        tit: "Radio Symphony",
-        rat: 2
-    },
-    {
-        id: "89644",
-        tit: "BNR Nieuwsradio",
-        rat: 1
-    },
-    {
-        id: "85586",
-        tit: "NPO Radio 1",
-        rat: 1
-    },
-    {
-        id: "11957",
-        tit: "Venice Classic Radio",
-        rat: 3
-    },
-    {
-        id: "126840",
-        tit: "Concertzender Klassiek",
-        rat: 3
-    },
-    {
-        id: "101494",
-        tit: "Concertzender Gaudeamus",
-        rat: 2
-    },
-    {
-        id: "101488",
-        tit: "Concertzender Klassieke Muziek",
-        rat: 2
-    }
-];
