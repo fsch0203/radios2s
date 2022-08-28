@@ -17,6 +17,9 @@ RadioS2S is working together with Community Radio Browser, a wiki-like directory
 
 ## Change log
 
+#### Version 1.2.1 (2022-06-02)
+- Minor bug fixes
+
 #### Version 1.2.0 (2021-10-29)
 - Migrated to flagpedia.net for country flags
 - Ended usage of Taffy
