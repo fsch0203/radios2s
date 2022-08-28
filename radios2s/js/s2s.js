@@ -1,4 +1,4 @@
-var version = "1.2.0";
+var version = "1.3.0";
 _settings = JSON.parse(localStorage.getItem('settings'));
 if (jQuery.isEmptyObject(_settings)) {
     _settings = { //global variables that are stored in localstorage
@@ -730,9 +730,9 @@ $(document).ready(function () {
         var yyyy = d.getFullYear();
         $("#favicon").removeClass("favicon2");
         var hd = _lg.About2;
-        var msg = "<p>" + _lg.msg01 + "</p>";
+        var msg = "<p>" + _lg.msg01 + "<a href='https://paypal.me/fsch0203' target='_blank'>" + _lg.msg010 + "</a>" + _lg.msg011 + "</p>";
         msg += "<p><a href='https://radios2s.scriptel.nl' target='_blank'>radios2s.scriptel.nl</a></p>";
-        msg += "<p>" + version + "</p><p>Copyright &copy; " + yyyy + ", Scriptel</p><hr/>";
+        msg += "<p>Version: " + version + "</p><p>Copyright &copy; " + yyyy + ", Scriptel</p><hr/>";
         msg += "<p>" + _lg.msg02 + "<a href='http://www.radio-browser.info/' target='_blank'>Radio Browser</a>";
         msg += _lg.msg03 + "</p><hr/>";
         msg += "<p class='italic'>" + _lg.msg04 + "</p>";

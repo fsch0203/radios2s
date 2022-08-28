@@ -1,11 +1,11 @@
 # RadioS2S
 
-RadioS2S is a chrome extension with which you can listen to every radio station that is available on the web. You can already choose from more than 28.000 stations, but you can add your own if one is missing. Every weblink that is playable in a webbrowser (HTML5) can be added. With the quick search option it's very easy to find you station.
+RadioS2S is a chrome extension with which you can listen to every radio station that is available on the web. You can already choose from more than 32.000 stations, but you can add your own if one is missing. Every weblink that is playable in a webbrowser (HTML5) can be added. With the quick search option it's very easy to find you station.
 
 RadioS2S is working together with Community Radio Browser, a wiki-like directory of internet radio stations from around the world.
 
 ## Features
-- Listen to the world: You can choose from over 28.000 free radio stations from all over the world fast.
+- Listen to the world: You can choose from over 32.000 free radio stations from all over the world fast.
 - Filter by country, language and style: Find your station fast with smart filtering.
 - Quick search: Find your station fast with quick search.
 - Favorites: Easily make a short list of your favorites by rating the station with one or more stars.
@@ -16,6 +16,9 @@ RadioS2S is working together with Community Radio Browser, a wiki-like directory
 
 
 ## Change log
+
+#### Version 1.3.0 (2022-08-28)
+- Manifest 3
 
 #### Version 1.2.1 (2022-06-02)
 - Minor bug fixes
